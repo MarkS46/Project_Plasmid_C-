@@ -10,7 +10,7 @@
     const int nvar = 3; // number of variables
     const double dt0 = 0.001; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 8000.0; // end time
+    const double tEnd = 2000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** model parameters *********
@@ -144,7 +144,7 @@ int main()
         ofs << "popsize" << ',' << "popid" << ',' << "Sin" << "\n";
 
         // loop over the Sin values to be tested 
-        for (Sin = 0; Sin < 101; Sin += 0.5)
+        for (Sin = 10.0; Sin < 151.0; Sin += 0.1)
         {  
             // check if it's running 
             std::cout << "x" << "\n";
@@ -211,8 +211,8 @@ int main()
             }
 
             // write data to file
-            ofs << x[1] << ',' << "N0" << ',' << c << '\n'
-                << x[2] << ',' << "N1" << ',' << c << '\n';
+            ofs << x[1] << ',' << "N0" << ',' << Sin << '\n'
+                << x[2] << ',' << "N1" << ',' << Sin << '\n';
 
         }
         ofs.close();

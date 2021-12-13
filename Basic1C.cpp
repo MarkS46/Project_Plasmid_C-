@@ -13,10 +13,10 @@
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
     const double l = 1e-3; // loss of plasmid 
     const double c = 1e-9; // conjugation factor
-    const double D = 0.23; // flow rate
+    const double D = 0.55; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
-    const double r1 = 0.5535; // growth rate of plasmid bearing
-    const double Sin = 20; // inflow concentration of food    
+    const double r1 = 0.6642; // growth rate of plasmid bearing
+    const double Sin = 50; // inflow concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
 
