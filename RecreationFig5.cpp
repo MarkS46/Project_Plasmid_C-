@@ -42,7 +42,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     dxdt[0] = D * (S - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
     dxdt[1] = psi0 * N0  - D * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
     dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
- }
+}
 //*** ODE integration routine *********
 
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
@@ -80,29 +80,29 @@ bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<d
             errMax = erri;
 }
 
-// adjust step size
-const double fct = errMax > 0.0 ? kdSafety / pow(errMax, 1.0/3.0) : kdGrowMax;
+    // adjust step size
+    const double fct = errMax > 0.0 ? kdSafety / pow(errMax, 1.0/3.0) : kdGrowMax;
     if(errMax > 1.0) 
     {
-    // reduce step size and reject step
-    if(fct < kdShrinkMax)
-        h *= kdShrinkMax;
-    else
-        h *= fct;
-    if(h < kdMinH)
-        throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
-    return false;
+        // reduce step size and reject step
+        if(fct < kdShrinkMax)
+            h *= kdShrinkMax;
+        else
+            h *= fct;
+        if(h < kdMinH)
+            throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
+        return false;
     }
-else {
-    // update solution and increase step size
-    x = xtmp;
-    dxdt = dxdt4;
-    t += h;
-    if(fct > kdGrowMax)
-        h *= kdGrowMax;
-    else
-        h *= fct;
-    return true;
+    else {
+        // update solution and increase step size
+        x = xtmp;
+        dxdt = dxdt4;
+        t += h;
+        if(fct > kdGrowMax)
+            h *= kdGrowMax;
+        else
+            h *= fct;
+        return true;
     }
 }
 
