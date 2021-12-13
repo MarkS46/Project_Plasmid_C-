@@ -50,59 +50,81 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
 
-bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double c)
+//*** The Bogacki-Shampine stepper *********
+
+bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double c)
 {
 
     // step 2
     std::vector<double> xtmp(nvar);
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] + 0.5 * h * dxdt[i];
+    }
     std::vector<double> dxdt2(nvar);
     rhs(t + 0.5 * h, xtmp, dxdt2, c);
 
     // step 3
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] + 0.75 * h * dxdt2[i];
+    }
     std::vector<double> dxdt3(nvar);
     rhs(t + 0.75 * h, xtmp, dxdt3, c);
 
     // step 4
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] +(1.0/9.0) * h *(2 * dxdt[i] + 3 * dxdt2[i] + 4 * dxdt3[i]) ;
+    }
     std::vector<double> dxdt4(nvar);
     rhs(t + h, xtmp, dxdt4, c);
 
     double errMax = 0.0;
-    for(int i = 0; i < nvar; ++i) {
+    for(int i = 0; i < nvar; ++i) 
+    {
         // compute error
         double erri = fabs(h * (5.0 * dxdt[i] / 72.0 - dxdt2[i] / 12.0 - dxdt3[i] / 9.0 + 0.125 * dxdt4[i])) / tolerance;
         if(erri > errMax)
+        {
             errMax = erri;
-}
+        }
+    }
 
-// adjust step size
-const double fct = errMax > 0.0 ? kdSafety / pow(errMax, 1.0/3.0) : kdGrowMax;
+    // adjust step size
+    const double fct = errMax > 0.0 ? kdSafety / pow(errMax, 1.0/3.0) : kdGrowMax;
     if(errMax > 1.0) 
     {
-    // reduce step size and reject step
-    if(fct < kdShrinkMax)
-        h *= kdShrinkMax;
-    else
-        h *= fct;
-    if(h < kdMinH)
-        throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
-    return false;
+        // reduce step size and reject step
+        if(fct < kdShrinkMax) // is the factor to little?
+        {
+            h *= kdShrinkMax; // decrease step size by this factor
+        }
+        else
+        {
+            h *= fct; // else decrease by the fct factor
+        }
+        if(h < kdMinH)
+        {
+            throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
+        return false;
+        }
     }
-else {
-    // update solution and increase step size
-    x = xtmp;
-    dxdt = dxdt4;
-    t += h;
-    if(fct > kdGrowMax)
-        h *= kdGrowMax;
-    else
-        h *= fct;
-    return true;
+    else 
+    {
+        // update solution and increase step size
+        x = xtmp;
+        dxdt = dxdt4;
+        t += h;
+        if(fct > kdGrowMax) // is the factor to large? 
+        {
+            h *= kdGrowMax; // increase step size by this factor
+        }
+        else
+        {
+            h *= fct; // else increase by the fct factor 
+        }
+        return true;
     }
 }
 
@@ -112,20 +134,19 @@ int main()
 {
     try {
         // open data file
-        std::ofstream ofs("AlteringC.csv");
+        std::ofstream ofs("ForConjug1C.csv");
         if(!ofs.is_open())
+        {
             throw std::runtime_error("unable to open file.\n");
-           
+        }   
 
         // give first row with variable names
         ofs << "popsize" << ',' << "popid" << ',' << "c" << "\n";
 
-        int nOK = 0, nStep = 0;
-        double dtMin = dt0, dtMax = kdMinH;
-
         // loop over the c values to be tested 
         for (double i = 5; i < 12; i += 0.05)
         {  
+            // check if it's running 
             std::cout << "x" << "\n";
             // give initial values
             std::vector<double> x(nvar);
@@ -142,8 +163,10 @@ int main()
             double t;   
             for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
             {
-                if(RungekuttaAdaptiveStepper(t, x, dxdt, dt, c))
+                if(BogackiShampineStepper(t, x, dxdt, dt, c))
+                {
                     ++nOK;
+                }
 
                 if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
                 {
@@ -152,10 +175,13 @@ int main()
                 } 
            
                 if(dt < dtMin)
+                {
                     dtMin = dt;
-
+                }
                 else if(dt > dtMax)
+                {
                     dtMax = dt;
+                }
             }
 
             // report integration data
@@ -168,12 +194,15 @@ int main()
 
             // return final population sizes
             std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
+
             // return alpha
             std::cout << "alpha = "  << alfa << "\n";
+
             // return concentration of plasmid bearing bacteria
             std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
+
             // report wether equilibrium (as indicated above) was found
-            if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-4)
+            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
             {
                 std::cout << "equilibrium was reached for all populations" <<  "\n\n";
             }

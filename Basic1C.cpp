@@ -56,28 +56,37 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
     // step 2
     std::vector<double> xtmp(nvar);
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] + 0.5 * h * dxdt[i];
+    }
     std::vector<double> dxdt2(nvar);
     rhs(t + 0.5 * h, xtmp, dxdt2, S);
 
     // step 3
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] + 0.75 * h * dxdt2[i];
+    }
     std::vector<double> dxdt3(nvar);
     rhs(t + 0.75 * h, xtmp, dxdt3, S);
 
     // step 4
     for(int i = 0; i < nvar; ++i)
+    {
         xtmp[i] = x[i] +(1.0/9.0) * h *(2 * dxdt[i] + 3 * dxdt2[i] + 4 * dxdt3[i]) ;
+    }
     std::vector<double> dxdt4(nvar);
     rhs(t + h, xtmp, dxdt4, S);
 
     double errMax = 0.0;
-    for(int i = 0; i < nvar; ++i) {
+    for(int i = 0; i < nvar; ++i) 
+    {
         // compute error
         double erri = fabs(h * (5.0 * dxdt[i] / 72.0 - dxdt2[i] / 12.0 - dxdt3[i] / 9.0 + 0.125 * dxdt4[i])) / tolerance;
         if(erri > errMax)
+        {
             errMax = erri;
+        }
     }
 
     // adjust step size
@@ -86,12 +95,18 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
     {
         // reduce step size and reject step
         if(fct < kdShrinkMax) // is the factor to little?
+        {
             h *= kdShrinkMax; // decrease step size by this factor
+        }
         else
-            h *= fct; // else decrease by the fct factor 
+        {
+            h *= fct; // else decrease by the fct factor
+        }
         if(h < kdMinH)
+        {
             throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
         return false;
+        }
     }
     else 
     {
@@ -100,9 +115,13 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         dxdt = dxdt4;
         t += h;
         if(fct > kdGrowMax) // is the factor to large? 
+        {
             h *= kdGrowMax; // increase step size by this factor
+        }
         else
+        {
             h *= fct; // else increase by the fct factor 
+        }
         return true;
     }
 }
