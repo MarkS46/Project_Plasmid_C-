@@ -30,11 +30,11 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
     double psi0 = ((r0 * R) / (K0 + R)); // growth rate of plasmid free bacteria
     double psi1 = ((r1 * R) / (K1 + R)); // growth rate of plasmid bearing bacteria
-
+    
     dxdt[0] = D * (S - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
     dxdt[1] = psi0 * N0  - D * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
     dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
- }
+}
 
 
 //*** parameters of the integration algorithm *********
