@@ -39,7 +39,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
 //*** parameters of the integration algorithm *********
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
-    const double kdGrowMax = 1.0; // increase step size by no more than this factor
+    const double kdGrowMax = 2.0; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
     const int nvar = 3; // number of variables
@@ -50,6 +50,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
 bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double S)
 {
+
 
     // step 2
     std::vector<double> xtmp(nvar);
@@ -139,10 +140,11 @@ int main()
                 /*if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
                     break;*/
 
-                if (abs(dxdt[1]) < 1.0e-9 && abs(dxdt[2]) < 1.0e-9)
+                if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
+                {
                     std::cout << " Stop " << '\n';
                     break; 
-           
+                } 
                 if(dt < dtMin)
                     dtMin = dt;
 
@@ -178,7 +180,7 @@ int main()
             // check 
             std::cout << dxdt[1] << " and " << dxdt[2] << "\n";
 
-            if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-4)
+            if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
             {
                 std::cout << "populations have reached equillibrium\n\n";
             }
