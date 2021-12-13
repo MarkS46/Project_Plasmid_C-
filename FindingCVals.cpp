@@ -46,7 +46,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 //*** ODE integration routine *********
 
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
-    const double kdGrowMax = 1.0; // increase step size by no more than this factor
+    const double kdGrowMax = 1.3; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
 
@@ -123,7 +123,7 @@ int main()
         int nOK = 0, nStep = 0;
         double dtMin = dt0, dtMax = kdMinH;
 
-        // loop over the 3 values of Sin to be tested 
+        // loop over the c values to be tested 
         for (double i = 5; i < 12; i += 0.05)
         {  
             std::cout << "x" << "\n";
@@ -139,14 +139,17 @@ int main()
             // start numerical integration
             int nOK = 0, nStep = 0;
             double dtMin = dt0, dtMax = kdMinH;
-            double t;
+            double t;   
             for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
             {
                 if(RungekuttaAdaptiveStepper(t, x, dxdt, dt, c))
                     ++nOK;
 
-                if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-4)
-                    break;
+                if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
+                {
+                    std::cout << " Stopped " << '\n';
+                    break; 
+                } 
            
                 if(dt < dtMin)
                     dtMin = dt;

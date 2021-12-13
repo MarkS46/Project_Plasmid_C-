@@ -16,11 +16,12 @@
     const double D = 0.23; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.5535; // growth rate of plasmid bearing
-    std::vector<double> SinVals = {20, 40 , 60}; // vector containing inflow concentration of food    
+    const double Sin = 20; // inflow concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
 
 //*** ODE description *********
+
 void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt, double S)
 {
 
@@ -36,22 +37,22 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
 }
 
-
 //*** parameters of the integration algorithm *********
+
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
-    const double kdGrowMax = 2.0; // increase step size by no more than this factor
+    const double kdGrowMax = 1.3; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
     const int nvar = 3; // number of variables
-    const double dt0 = 0.01; // initial time step size
-    const double dtsav = 0.5; // save data after time steps
+    const double dt0 = 0.001; // initial time step size
+    const double dtsav = 0.05; // save data after time steps
     const double tEnd = 1000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
-bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double S)
+//*** The Bogacki-Shampine stepper *********
+
+bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double S)
 {
-
-
     // step 2
     std::vector<double> xtmp(nvar);
     for(int i = 0; i < nvar; ++i)
@@ -84,10 +85,10 @@ bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<d
     if(errMax > 1.0) 
     {
         // reduce step size and reject step
-        if(fct < kdShrinkMax)
-            h *= kdShrinkMax;
+        if(fct < kdShrinkMax) // is the factor to little?
+            h *= kdShrinkMax; // decrease step size by this factor
         else
-            h *= fct;
+            h *= fct; // else decrease by the fct factor 
         if(h < kdMinH)
             throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
         return false;
@@ -98,10 +99,10 @@ bool RungekuttaAdaptiveStepper(double &t, std::vector<double> &x,  std::vector<d
         x = xtmp;
         dxdt = dxdt4;
         t += h;
-        if(fct > kdGrowMax)
-            h *= kdGrowMax;
+        if(fct > kdGrowMax) // is the factor to large? 
+            h *= kdGrowMax; // increase step size by this factor
         else
-            h *= fct;
+            h *= fct; // else increase by the fct factor 
         return true;
     }
 }
@@ -112,82 +113,81 @@ int main()
 {
     try {
         // open data file
-        std::ofstream ofs("CheckFigtest.csv");
+        std::ofstream ofs("Basic1C.csv");
         if(!ofs.is_open())
+        {
             throw std::runtime_error("unable to open file.\n");
-           
+        }      
         // give first row with variable names
         ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "resource input" << "\n";
 
         // give initial values
-            double Sin = SinVals[0]; 
-            std::vector<double> x(nvar);
-            x[0] = Sin;
-            x[1] = 1.0;
-            x[2] = 1.0e-5;
-            std::vector<double> dxdt(nvar);
-            rhs(0.0, x, dxdt, Sin);
+        std::vector<double> x(nvar);
+        x[0] = Sin;
+        x[1] = 1.0;
+        x[2] = 1.0;
+        std::vector<double> dxdt(nvar);
+        rhs(0.0, x, dxdt, Sin);
 
-            int nOK = 0, nStep = 0;
-            double dtMin = dt0, dtMax = kdMinH; 
+        // initiate parameters for the integration
+        int nOK = 0, nStep = 0;
+        double dtMin = dt0, dtMax = kdMinH; 
 
-            // start numerical integration
-            for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
+        // start numerical integration
+        for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
+        {
+            if(BogackiShampineStepper(t, x, dxdt, dt, Sin))
             {
-                if(RungekuttaAdaptiveStepper(t, x, dxdt, dt, Sin))
-                    ++nOK;
-
-                /*if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
-                    break;*/
-
-                if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
-                {
-                    std::cout << " Stop " << '\n';
-                    break; 
-                } 
-                if(dt < dtMin)
-                    dtMin = dt;
-
-                else if(dt > dtMax)
-                    dtMax = dt;
-
-
-                if(t > tsav) 
-                {
-                    ofs << t << ',' << x[1] << ',' << "N0" << ',' << Sin << '\n' 
-                        << t << ',' << x[2] << ',' << "N1" << ',' << Sin << '\n'; 
-                    tsav += dtsav;
-                }
+                ++nOK;
+            }
+            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
+            {
+                std::cout << " Stopped " << '\n';
+                break; 
+            } 
+            if(dt < dtMin) // keep track of the smallest step size
+            {
+                dtMin = dt;
+            }
+            else if(dt > dtMax) // keep track of the largest step size  
+            {
+                dtMax = dt;
             }
 
-            // report integration data
-            std::cout << "integration complete.\n"
-            << "number of steps : " << nStep << '\n'
-            << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
-            << "average step size : " << tEnd / nStep << '\n'
-            << "min step size : " << dtMin << '\n'
-            << "max step size : " << dtMax << "\n\n";
-
-            // return population sizes at end of simulation
-            std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
-
-            // return alpha
-            std::cout << "alpha = "  << alfa << "\n";
-
-            // return concencration of plasmid bearing cells
-            std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
-
-            // check 
-            std::cout << dxdt[1] << " and " << dxdt[2] << "\n";
-
-            if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
+            if(t > tsav) // save the data every 0.5 time steps
             {
-                std::cout << "populations have reached equillibrium\n\n";
+                ofs << t << ',' << x[1] << ',' << "N0" << ',' << Sin << '\n' 
+                    << t << ',' << x[2] << ',' << "N1" << ',' << Sin << '\n'; 
+                tsav += dtsav;
             }
-            else
-            {
-                std::cout << "1 or more populations have not reached equillibrium\n\n";
-            }
+        }
+
+        // report integration data
+        std::cout << "integration complete.\n"
+        << "number of steps : " << nStep << '\n'
+        << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
+        << "average step size : " << tEnd / nStep << '\n'
+        << "min step size : " << dtMin << '\n'
+        << "max step size : " << dtMax << "\n\n";
+
+        // return population sizes at end of simulation
+        std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
+
+        // return alpha
+        std::cout << "alpha = "  << alfa << "\n";
+
+        // return concencration of plasmid bearing cells
+        std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
+
+        // Notify if all equilibria were found
+        if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
+        {
+            std::cout << "populations have reached equillibrium\n\n";
+        }
+        else
+        {
+            std::cout << "1 or more populations have not reached equillibrium\n\n";
+        }
         
         ofs.close();
     }
