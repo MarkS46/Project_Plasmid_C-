@@ -107,8 +107,8 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         if(h < kdMinH)
         {
             throw std::runtime_error("step size underflow in eulerHeunAdaptiveStepper().");
-        return false;
         }
+        return false;
     }
     else 
     {
@@ -132,7 +132,8 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
 
 int main()
 {
-    try {
+    try 
+    {
         // open data file
         std::ofstream ofs("ForConjug&Sin1C.csv");
         if(!ofs.is_open())
@@ -143,6 +144,7 @@ int main()
         // give first row with variable names
         ofs << "popsize" << ',' << "popid" << ',' << "Sin" << ',' << "c" << "\n";
 
+        std::cout << "0->->->->->100" << '\n';
         //loop over the c values to be tested
         for (double i = 5; i < 12;  i += 0.5 )
         {
