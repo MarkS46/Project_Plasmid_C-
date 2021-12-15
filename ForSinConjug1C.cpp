@@ -8,7 +8,7 @@
 //*** parameters of the integration algorithm *********
 
     const int nvar = 3; // number of variables
-    const double dt0 = 0.001; // initial time step size
+    const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
     const double tEnd = 1000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
@@ -46,7 +46,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 //*** ODE integration routine *********
 
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
-    const double kdGrowMax = 1.3; // increase step size by no more than this factor
+    const double kdGrowMax = 1.2; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
 
@@ -135,18 +135,18 @@ int main()
     try 
     {
         // open data file
-        std::ofstream ofs("ForConjug&Sin1C.csv");
+        std::ofstream ofs("ForConjugSin1Comp.csv");
         if(!ofs.is_open())
         {
             throw std::runtime_error("unable to open file.\n");
         }   
 
         // give first row with variable names
-        ofs << "popsize" << ',' << "popid" << ',' << "Sin" << ',' << "c" << "\n";
+        ofs << "N0" << ',' << "N1" << ',' << "Sin" << ',' << "c" << "\n";
 
-        std::cout << "0->->->->->100" << '\n';
+        std::cout << "0-100" << '\n';
         //loop over the c values to be tested
-        for (double i = 5; i < 12;  i += 0.5 )
+        for (double i = 5; i < 10; ++i )
         {
             std::cout << "x";
             c = pow(10, -i);
@@ -217,8 +217,7 @@ int main()
                 } */
 
                  // write data to file
-                ofs << x[1] << ',' << "N0" << ',' << Sin << ',' << c << '\n'
-                    << x[2] << ',' << "N1" << ',' << Sin << ',' << c << '\n';
+                ofs << x[1] << ',' << x[2] <<  ',' << Sin << ',' << c << '\n';
             }
         }   
         ofs.close();
