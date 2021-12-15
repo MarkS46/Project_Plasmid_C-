@@ -135,7 +135,7 @@ int main()
     try 
     {
         // open data file
-        std::ofstream ofs("ForConjugSin1Comp.csv");
+        std::ofstream ofs("ForConjugSin1C.csv");
         if(!ofs.is_open())
         {
             throw std::runtime_error("unable to open file.\n");
