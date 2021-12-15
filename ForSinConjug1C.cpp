@@ -146,13 +146,12 @@ int main()
         //loop over the c values to be tested
         for (double i = 5; i < 12;  i += 0.5 )
         {
+            std::cout << "x";
             c = pow(10, -i);
 
             // loop over the Sin values to be tested 
-            for (Sin = 10.0; Sin < 151.0; Sin += 0.1)
+            for (Sin = 10.0; Sin < 151.0; ++Sin)
             {  
-                // check if it's running 
-                std::cout << "x" << "\n";
                 // give initial values
                 std::vector<double> x(nvar);
                 x[0] = Sin;
@@ -174,7 +173,6 @@ int main()
 
                     if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
                     {
-                        std::cout << " Stopped " << '\n';
                         break; 
                     } 
            
@@ -188,6 +186,7 @@ int main()
                     }
                 }
 
+                /* 
                 // report integration data
                 std::cout << "integration complete.\n"
                 << "number of steps : " << nStep << '\n'
@@ -213,7 +212,7 @@ int main()
                 else
                 {
                     std::cout << "for one or more populations the equillibrium was not reached" << "\n\n";
-                }
+                } */
 
                  // write data to file
                 ofs << x[1] << ',' << "N0" << ',' << Sin << ',' << c << '\n'
