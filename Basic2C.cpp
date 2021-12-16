@@ -30,18 +30,18 @@
     const double DL = 0.55; // flow rate in lumen
     const double SLin = 50; // resource coming in to the lumen
     const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
-    const double KLW1 = 1e-5; // attaching of plasmid bearing cells to wall
-    const double d0L = 0.55; // death rate of plasmid free cells in  lumen
-    const double d1L = 0.55; // death rate of plasmid bearing cells in lumen 
+    const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
+    const double d0L = DL; // death rate of plasmid free cells in  lumen
+    const double d1L = DL; // death rate of plasmid bearing cells in lumen 
 
     // at wall
     const double cW = 1e-9; // conjugation factor at wall
-    const double d0W = 0.55; // death rate of plasmide free at wall 
-    const double d1W = 0.55; // deat rate of plasmid bearing at wall
     const double DW = 0.55; // flow rate at wall     
+    const double d0W = DW; // death rate of plasmide free at wall 
+    const double d1W = DW; // deat rate of plasmid bearing at wall
     const double SWin = 50; // resource coming to the wall
     const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
-    const double KWL1 = 1e-11; // dettaching of plasmid bearing cells of wall
+    const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
 
 //*** ODE description *********
 
@@ -166,7 +166,7 @@ int main()
 {
     try {
         // open data file
-        std::ofstream ofs("Basic2C.csv");
+        std::ofstream ofs("Basic2Cjh.csv");
         if(!ofs.is_open())
             throw std::runtime_error("unable to open file.\n");
            
@@ -228,7 +228,7 @@ int main()
         
         
         
-        // report integration data
+        /*// report integration data
         std::cout << "\nintegration complete.\n"
         << "number of steps : " << nStep << '\n'
         << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
@@ -238,7 +238,7 @@ int main()
         << "check = " << dxdt[1] << "  " << dxdt[2] << "  " << dxdt[4] << "  " << dxdt[5] << "\n ";
 
         // return alfa
-        std::cout << "alpha = "  << alfa << "\n";
+        std::cout << "alpha = "  << alfa << "\n"; */
         
         ofs.close();
     }

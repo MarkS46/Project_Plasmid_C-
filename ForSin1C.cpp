@@ -21,7 +21,7 @@
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
     const double l = 1e-3; // loss of plasmid 
     const double c = 1e-9; // conjugation factor
-    const double D = 0.55; // flow rate
+    const double D = 0.35; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
     double Sin; //inflow concentration of resource   
@@ -144,7 +144,7 @@ int main()
         ofs << "popsize" << ',' << "popid" << ',' << "Sin" << "\n";
 
         // loop over the Sin values to be tested 
-        for (Sin = 10.0; Sin < 151.0; Sin += 0.1)
+        for (Sin = 10.0; Sin < 70.0; ++Sin)
         {  
             // check if it's running 
             std::cout << "x" << "\n";
