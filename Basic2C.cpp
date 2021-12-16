@@ -30,7 +30,7 @@
     const double DL = 0.55; // flow rate in lumen
     const double SLin = 50; // resource coming in to the lumen
     const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
-    const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
+    const double KLW1 = 1e-5; // attaching of plasmid bearing cells to wall
     const double d0L = 0.55; // death rate of plasmid free cells in  lumen
     const double d1L = 0.55; // death rate of plasmid bearing cells in lumen 
 
@@ -41,7 +41,7 @@
     const double DW = 0.55; // flow rate at wall     
     const double SWin = 50; // resource coming to the wall
     const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
-    const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
+    const double KWL1 = 1e-11; // dettaching of plasmid bearing cells of wall
 
 //*** ODE description *********
 
@@ -160,7 +160,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
     }
 }
 
- //*** function main() *********
+//*** function main() *********
 
 int main()
 {
