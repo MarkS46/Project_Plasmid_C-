@@ -1,6 +1,6 @@
 library (ggplot2)
 library(readr)
-data <- read_csv("C:/Users/marks/Desktop/Git/Project_Plasmid_C-/Basic1C.csv")
+data <-read_csv("C:/Users/marks/Desktop/Git/Project_Plasmid_C-/build/Basic1C.csv")
 
 data$`resource input` <- factor(data$`resource input`)
 data$trans <- log10(data$popsize)

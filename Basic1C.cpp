@@ -46,7 +46,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const int nvar = 3; // number of variables
     const double dt0 = 0.001; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 1000.0; // end time
+    const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
@@ -159,7 +159,7 @@ int main()
             {
                 ++nOK;
             }
-            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
+            if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4)
             {
                 std::cout << " Stopped " << '\n';
                 break; 
@@ -199,7 +199,7 @@ int main()
         std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
 
         // Notify if all equilibria were found
-        if (sqrt(dxdt[1] * dxdt[1] + dxdt[2] * dxdt[2]) < 1.0e-6)
+        if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4)
         {
             std::cout << "populations have reached equillibrium\n\n";
         }
