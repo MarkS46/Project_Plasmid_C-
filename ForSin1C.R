@@ -1,7 +1,7 @@
 library (ggplot2)
 library(readr)
 
-data <- read_csv("C:/Users/marks/Desktop/Git/Project_Plasmid_C-/ForSin1C.csv")
+data <- read_csv("C:/Users/marks/Desktop/Git/Project_Plasmid_C-/build/ForSin1C7.csv")
 
 ggplot(data=data, aes(x=Sin)) +
   geom_line(aes(y = popsize, color = popid), size = 1) +

@@ -4,6 +4,8 @@
 #include <exception>
 #include <cstdlib>
 #include <cmath> 
+#include <string>
+
 
 //*** parameters of the integration algorithm *********
 
@@ -12,7 +14,7 @@
     const double dtsav = 0.05; // save data after time steps
     const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-
+    std::string name = "Basic2C39.csv";
 //*** model parameters *********
 
     // general 
@@ -26,20 +28,20 @@
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
     // in lumen
-    const double cL = 1e-9; // conjugation factor in lumen
+    const double cL = pow(10, -9); // conjugation factor in lumen
     const double DL = 0.55; // flow rate in lumen
     const double SLin = 50; // resource coming in to the lumen
     const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
-    const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
+    const double KLW1 = 1e-2; // attaching of plasmid bearing cells to wall
     const double d0L = DL; // death rate of plasmid free cells in  lumen
     const double d1L = DL; // death rate of plasmid bearing cells in lumen 
 
     // at wall
-    const double cW = 1e-9; // conjugation factor at wall
-    const double DW = 0.55; // flow rate at wall     
+    const double cW = pow(10, -9); // conjugation factor at wall
+    const double DW = 0.35; // flow rate at wall     
     const double d0W = DW; // death rate of plasmide free at wall 
     const double d1W = DW; // deat rate of plasmid bearing at wall
-    const double SWin = 50; // resource coming to the wall
+    const double SWin = 25; // resource coming to the wall
     const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
     const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
 
@@ -166,7 +168,7 @@ int main()
 {
     try {
         // open data file
-        std::ofstream ofs("Basic2Cjh.csv");
+        std::ofstream ofs(name);
         if(!ofs.is_open())
             throw std::runtime_error("unable to open file.\n");
            

@@ -20,8 +20,8 @@
     const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
     const double l = 1e-3; // loss of plasmid 
-    const double c = 1e-9; // conjugation factor
-    const double D = 0.35; // flow rate
+    const double c = pow(10, -8.5); // conjugation factor
+    const double D = 0.25; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
     double Sin; //inflow concentration of resource   
@@ -134,7 +134,7 @@ int main()
 {
     try {
         // open data file
-        std::ofstream ofs("ForSin1C.csv");
+        std::ofstream ofs("ForSin1C7.csv");
         if(!ofs.is_open())
         {
             throw std::runtime_error("unable to open file.\n");
@@ -144,7 +144,7 @@ int main()
         ofs << "popsize" << ',' << "popid" << ',' << "Sin" << "\n";
 
         // loop over the Sin values to be tested 
-        for (Sin = 10.0; Sin < 70.0; ++Sin)
+        for (Sin = 1.0; Sin < 70.0; ++Sin)
         {  
             // check if it's running 
             std::cout << "x" << "\n";
