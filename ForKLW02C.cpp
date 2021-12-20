@@ -12,9 +12,9 @@
     const int nvar = 6; // number of variables
     const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 1000.0; // end time
+    const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-    std::string name = "ForKLW02C.csv";
+    std::string name = "ForKLW02C2.csv";
 //*** model parameters *********
 
     // general 
@@ -180,7 +180,7 @@ int main()
         double initialN0 = 1.0;
         double initialN1 = 1e-5;
 
-        for (double i = 10.0; i < 0.9; i -= 0.1)
+        for (double i = 5.0; i > 0.1; i -= 0.1)
         {
             std::cout << "x";
             double KLW0val = pow(10, -i);

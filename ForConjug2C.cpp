@@ -12,7 +12,7 @@
     const int nvar = 6; // number of variables
     const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 50000.0; // end time
+    const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
     std::string name = "ForConjug2C3.csv";
 //*** model parameters *********

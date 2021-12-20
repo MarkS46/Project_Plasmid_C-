@@ -5,4 +5,4 @@ project ("cmake-project")
 set(CMAKE_CXX_STANDARD 20)
 
 # Add source to this project's executable.
-add_executable (cmake-project "ForKLW02C.cpp")
+add_executable (cmake-project "ForConjug2C.cpp")
