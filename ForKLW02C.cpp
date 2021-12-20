@@ -12,9 +12,9 @@
     const int nvar = 6; // number of variables
     const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 10000.0; // end time
+    const double tEnd = 1000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-    std::string name = "Basic2C50.csv";
+    std::string name = "ForKLW02C.csv";
 //*** model parameters *********
 
     // general 
@@ -31,13 +31,13 @@
     const double cL = pow(10, -9); // conjugation factor in lumen
     const double DL = 0.45; // flow rate in lumen
     const double SLin = 33; // resource coming in to the lumen
-    const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
+    double KLW0; // attaching of plasmid free cells to wall
     const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
     const double d0L = DL; // death rate of plasmid free cells in  lumen
     const double d1L = DL; // death rate of plasmid bearing cells in lumen 
 
     // at wall
-    const double cW = pow(10, -9); // conjugation factor at wall
+    double cW; // conjugation factor at wall
     const double DW = 0.35; // flow rate at wall     
     const double d0W = DW; // death rate of plasmide free at wall 
     const double d1W = DW; // deat rate of plasmid bearing at wall
@@ -47,7 +47,7 @@
 
 //*** ODE description *********
 
-void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt)
+void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt, double KLW0)
 {
     // main variables
 
@@ -86,7 +86,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
 //*** The Bogacki-Shampine stepper *********
 
-bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h)
+bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double KLW0)
 {
 
     // step 2
@@ -96,7 +96,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] + 0.5 * h * dxdt[i];
     }
     std::vector<double> dxdt2(nvar);
-    rhs(t + 0.5 * h, xtmp, dxdt2);
+    rhs(t + 0.5 * h, xtmp, dxdt2, KLW0);
 
     // step 3
     for(int i = 0; i < nvar; ++i)
@@ -104,7 +104,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] + 0.75 * h * dxdt2[i];
     }
     std::vector<double> dxdt3(nvar);
-    rhs(t + 0.75 * h, xtmp, dxdt3);
+    rhs(t + 0.75 * h, xtmp, dxdt3, KLW0);
 
     // step 4
     for(int i = 0; i < nvar; ++i)
@@ -112,7 +112,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] +(1.0/9.0) * h *(2 * dxdt[i] + 3 * dxdt2[i] + 4 * dxdt3[i]) ;
     }
     std::vector<double> dxdt4(nvar);
-    rhs(t + h, xtmp, dxdt4);
+    rhs(t + h, xtmp, dxdt4, KLW0);
 
     double errMax = 0.0;
     for(int i = 0; i < nvar; ++i) 
@@ -174,74 +174,67 @@ int main()
            
 
         // give first row with variable names
-        ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
+        ofs << "popsize" << ',' << "population" << ',' << "location" << ',' << "AttachmentOfN0" << "\n";
 
-         // give initial values
-        std::vector<double> x(nvar);
-        x[0] = SWin;
-        x[1] = 1.0;
-        x[2] = 1.0;
-        x[3] = SLin;
-        x[4] = 1.0;
-        x[5] = 1.0;
-        std::vector<double> dxdt(nvar);
-        rhs(0.0, x, dxdt);
 
-        // start numerical integration
-        int nOK = 0, nStep = 0;
-        double dtMin = dt0, dtMax = kdMinH;
-        double t;
-        double tsav;
-        double dt;
-        for(t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
+        double initialN0 = 1.0;
+        double initialN1 = 1e-5;
+
+        for (double i = 10.0; i < 0.9; i -= 0.1)
         {
-            if(BogackiShampineStepper(t, x, dxdt, dt))
+            std::cout << "x";
+            double KLW0val = pow(10, -i);
+            // give initial values
+            std::vector<double> x(nvar);
+            x[0] = SWin;
+            x[1] = initialN0;
+            x[2] = initialN1;
+            x[3] = SLin;
+            x[4] = initialN0;
+            x[5] = initialN1;
+            std::vector<double> dxdt(nvar);
+            rhs(0.0, x, dxdt, KLW0val);
+
+            // start numerical integration
+            int nOK = 0, nStep = 0;
+            double dtMin = dt0, dtMax = kdMinH;
+            double t = 0.0;
+            double dt;
+            for(t, dt = dt0; t < tEnd; ++nStep) 
             {
-                ++nOK;
-            }
-            if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4 && fabs(dxdt[4]) < 1.0e-4 && fabs(dxdt[5]) < 1.0e-4)
-            {
-                break;
-            }
-            if(dt < dtMin)
-            {
-                dtMin = dt;
-            }
-            else if(dt > dtMax)
-            {
-                dtMax = dt;
+                if(BogackiShampineStepper(t, x, dxdt, dt, KLW0val))
+                {
+                    ++nOK;
+                }
+                if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4 && fabs(dxdt[4]) < 1.0e-4 && fabs(dxdt[5]) < 1.0e-4)
+                {
+                    break;
+                }
             }
 
-            if(t > tsav) 
+            if (dxdt[2] > -1.0e-4 && x[2] < 1)
             {
-                ofs << t << ',' << x[1] << ',' << "N0" << ',' << "Wall" << '\n' 
-                    << t << ',' << x[2] << ',' << "N1" << ',' << "Wall" << '\n'
-                    << t << ',' << x[4] << ',' << "N0" << ',' << "Lumen" << '\n'
-                    << t << ',' << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';  
-                tsav += dtsav;
+                x[2] = 0;
             }
+            if (dxdt[5] > -1.0e-4 && x[5] < 1) 
+            {
+                x[5] = 0;
+            }
+            if (dxdt[1] > -1.0e-4 && x[1] < 1)
+            {
+                x[1] = 0;
+            }
+            if (dxdt[4] > -1.0e-4 && x[4] < 1) 
+            {
+                x[4] = 0;
+            }
+
+            ofs << x[1] << ',' << "N0" << ',' << "Wall" << ',' << KLW0val << '\n' 
+                << x[2] << ',' << "N1" << ',' << "Wall" << ',' << KLW0val << '\n'
+                << x[4] << ',' << "N0" << ',' << "Lumen" << ',' << KLW0val << '\n'
+                << x[5] << ',' << "N1" << ',' << "Lumen" << ',' << KLW0val << '\n';  
+
         }
-
-        std::cout << "t = " << t
-                          << " \n at the wall: \n" 
-                          << "plasmid free = " << x[1]  << "   plasmid bearing = " << x[2] << "   resource = " << x[0] 
-                          << "\n in the lumen: \n" 
-                          << "plasmid free = " << x[4]  << "   plasmid bearing = " << x[5] << "   resource = " << x[3] << "\n"; 
-        
-        
-        
-        /*// report integration data
-        std::cout << "\nintegration complete.\n"
-        << "number of steps : " << nStep << '\n'
-        << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
-        << "average step size : " << tEnd / nStep << '\n'
-        << "min step size : " << dtMin << '\n'
-        << "max step size : " << dtMax << '\n'
-        << "check = " << dxdt[1] << "  " << dxdt[2] << "  " << dxdt[4] << "  " << dxdt[5] << "\n ";
-
-        // return alfa
-        std::cout << "alpha = "  << alfa << "\n"; */
-        
         ofs.close();
     }
     catch(std::exception &error) 
