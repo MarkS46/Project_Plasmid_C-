@@ -14,7 +14,6 @@
     const double dtsav = 0.05; // save data after time steps
     const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-    std::string name = "Basic2C50.csv";
 //*** model parameters *********
 
     // general
@@ -25,11 +24,12 @@
     const double l = 1e-3; // loss of plasmid
     const double r0 = 0.738; // max growth rate of plasmid free
     const double r1 = 0.6642; // max growth rate of plasmid bearing
-    const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
     // in lumen
+    const double VL = 10.0; // Volume of lumen chemostat
+    const double WL = 4.5; // Rate at which the nutrient solution enters (and leaves) the chemostat (lumen)
     const double cL = pow(10, -9); // conjugation factor in lumen
-    const double DL = 0.45; // flow rate in lumen
+    const double DL = WL/VL; // flow rate in lumen
     const double SLin = 33; // resource coming in to the lumen
     double KLW0 = 1e-9; // attaching of plasmid free cells to wall
     const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
@@ -37,8 +37,10 @@
     const double d1L = DL; // death rate of plasmid bearing cells in lumen
 
     // at wall
+    const double VW = 2.0; // Volume of wall chemostat 
+    const double WW = 0.70; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
     const double cW = pow(10, -9); // conjugation factor at wall
-    const double DW = 0.35; // flow rate at wall
+    const double DW = WW/VW; // flow rate at wall
     const double d0W = DW; // death rate of plasmide free at wall
     const double d1W = DW; // deat rate of plasmid bearing at wall
     const double SWin = 9; // resource coming to the wall
@@ -82,10 +84,10 @@ void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt) {
   double N0L = x[4]; // plasmid free in lumen
   double N1L = x[5]; // plasmid bearing in lumen
 
-  dxdt[1] += KLW0 * N0L - KWL0 * N0W;
-  dxdt[2] += KLW1 * N1L - KWL1 * N1W;
-  dxdt[4] += KWL0 * N0W - KLW0 * N0L;
-  dxdt[5] += KWL1 * N1W - KLW1 * N1L;
+  dxdt[1] += (KLW0 * N0L)/VW - KWL0 * N0W; // Idk really but I thought this way I can compensate for the 
+  dxdt[2] += (KLW1 * N1L)/VW - KWL1 * N1W; // transferring of cells into the different volumes. 
+  dxdt[4] += (KWL0 * N0W)/VL - KLW0 * N0L; // and this is how i could portray the volumes 
+  dxdt[5] += (KWL1 * N1W)/VL - KLW1 * N1L;
 
   return;
 }
@@ -185,14 +187,17 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
 
 void do_analysis(std::string output_filename, const std::vector<double>& pars) 
 {
+  double initialN0 = 1.0;
+  double initialN1 = 1.0e-5;
+
    // give initial values
   std::vector<double> x(nvar);
   x[0] = SWin;
-  x[1] = 1.0;
-  x[2] = 1.0;
+  x[1] = initialN0;
+  x[2] = initialN1;
   x[3] = SLin;
-  x[4] = 1.0;
-  x[5] = 1.0;
+  x[4] = initialN0;
+  x[5] = initialN1;
   std::vector<double> dxdt(nvar);
   rhs(0.0, x, dxdt);
 
@@ -261,7 +266,7 @@ int main()
 {
     try {
 
-      std::string file_name = "resultsKLW01.csv";
+      std::string file_name = "resultsKLW0test.csv";
       std::ofstream ofs(file_name.c_str());
       // give first row with variable names
       ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
