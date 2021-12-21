@@ -31,13 +31,13 @@
     const double cL = pow(10, -9); // conjugation factor in lumen
     const double DL = 0.45; // flow rate in lumen
     const double SLin = 33; // resource coming in to the lumen
-    const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
+    double KLW0 = 1e-9; // attaching of plasmid free cells to wall
     const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
     const double d0L = DL; // death rate of plasmid free cells in  lumen
     const double d1L = DL; // death rate of plasmid bearing cells in lumen
 
     // at wall
-    double cW = pow(10, -9); // conjugation factor at wall
+    const double cW = pow(10, -9); // conjugation factor at wall
     const double DW = 0.35; // flow rate at wall
     const double d0W = DW; // death rate of plasmide free at wall
     const double d1W = DW; // deat rate of plasmid bearing at wall
@@ -46,8 +46,8 @@
     const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
 
     const std::vector< double > D = {DW, DL};
-    const std::vector< double > Sin = {SWin, SLin};
-    std::vector< double > c = {cW, cL};
+    std::vector< double > Sin = {SWin, SLin};
+    const std::vector< double > c = {cW, cL};
 
 //*** ODE description *********
 
@@ -241,15 +241,15 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
 
   for(size_t i = 0; i < pars.size(); ++i ){
     ofs << pars[i] << ',';
-  } ofs << ',' << x[2] << ',' << "N1" << ',' << "Wall" << '\n';
+  } ofs << x[2] << ',' << "N1" << ',' << "Wall" << '\n';
 
   for(size_t i = 0; i < pars.size(); ++i ){
     ofs << pars[i] << ',';
-  } ofs << ',' << x[4] << ',' << "N0" << ',' << "Lumen" << '\n';
+  } ofs << x[4] << ',' << "N0" << ',' << "Lumen" << '\n';
 
   for(size_t i = 0; i < pars.size(); ++i ){
     ofs << pars[i] << ',';
-  } ofs << ',' << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';
+  } ofs << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';
 
   ofs.close();
 }
@@ -261,18 +261,18 @@ int main()
 {
     try {
 
-      std::string file_name = "results.csv";
+      std::string file_name = "resultsKLW01.csv";
       std::ofstream ofs(file_name.c_str());
       // give first row with variable names
-       ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
+      ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
       ofs.close();
 
-      for (double local_c = 1e-12; local_c < 1e-4; local_c*=10) {
-        cW = local_c;
-        c[location::Lumen] = cL;
-        std::vector<double> pars = {local_c};
+      for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -0.5); local_KLW0 *= 2 ) 
+      {
+        KLW0 = local_KLW0;
+        std::vector<double> pars = {local_KLW0};
         do_analysis(file_name, pars);
-        std::cout << local_c << "\n";
+        std::cout << local_KLW0 << "\n";
       }
     }
     catch(std::exception &error)
