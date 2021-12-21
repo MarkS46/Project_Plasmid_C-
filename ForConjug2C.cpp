@@ -14,7 +14,7 @@
     const double dtsav = 0.05; // save data after time steps
     const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-    std::string name = "ForConjug2C3.csv";
+    std::string name = "ForConjug2Ctest.csv";
 //*** model parameters *********
 
     // general 
@@ -180,7 +180,7 @@ int main()
         double initialN0 = 1.0;
         double initialN1 = 1e-5;
 
-        for (double i = 4.0; i < 12.0; i += 0.1)
+        for (double i = 4.0; i < 12.0; i += 1)
         {
             std::cout << "x";
             double cWval = pow(10, -i);
