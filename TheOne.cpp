@@ -84,10 +84,10 @@ void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt) {
   double N0L = x[4]; // plasmid free in lumen
   double N1L = x[5]; // plasmid bearing in lumen
 
-  dxdt[1] += (KLW0 * N0L)/VW - KWL0 * N0W; // Idk really but I thought this way I can compensate for the 
-  dxdt[2] += (KLW1 * N1L)/VW - KWL1 * N1W; // transferring of cells into the different volumes. 
-  dxdt[4] += (KWL0 * N0W)/VL - KLW0 * N0L; // and this is how i could portray the volumes 
-  dxdt[5] += (KWL1 * N1W)/VL - KLW1 * N1L;
+  dxdt[1] += (KLW0 * N0L * VL)/VW - KWL0 * N0W; // Idk really but I thought this way I can compensate for the 
+  dxdt[2] += (KLW1 * N1L * VL)/VW - KWL0 * N1W; // transferring of cells into the different volumes. 
+  dxdt[4] += (KWL0 * N0W * VW)/VL - KLW0 * N0L; // and this is how i could portray the volumes 
+  dxdt[5] += (KWL1 * N1W * VW)/VL - KLW1 * N1L;
 
   return;
 }
@@ -266,7 +266,7 @@ int main()
 {
     try {
 
-      std::string file_name = "resultsKLW0test.csv";
+      std::string file_name = "resultsKLW0fy.csv";
       std::ofstream ofs(file_name.c_str());
       // give first row with variable names
       ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
