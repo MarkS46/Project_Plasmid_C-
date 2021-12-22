@@ -76,7 +76,8 @@ void update_state(const std::vector<double> &x, std::vector<double> &dxdt, locat
   return;
 }
 
-void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt) {
+void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt) 
+{
 
   double N0W = x[1]; // plasmid free at wall
   double N1W = x[2]; // plasmid bearing at wall
@@ -219,19 +220,19 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
       }
   }
 
-  if (dxdt[2] > -1.0e-4 && x[2] < 1)
+  if (dxdt[2] > -1.0e-4 && dxdt[2] < 0 && x[2] < initialN1)
   {
     x[2] = 0;
   }
-    if (dxdt[5] > -1.0e-4 && x[5] < 1) 
+    if (dxdt[5] > -1.0e-4 && dxdt[5] < 0 && x[5] < initialN1) 
   {
     x[5] = 0;
   }
-  if (dxdt[1] > -1.0e-4 && x[1] < 1)
+  if (dxdt[1] > -1.0e-4 && dxdt[1] < 0 && x[1] < initialN0)
   {
     x[1] = 0;
   }
-  if (dxdt[4] > -1.0e-4 && x[4] < 1) 
+  if (dxdt[4] > -1.0e-4 && dxdt[4] < 0 && x[4] < initialN0) 
   {
     x[4] = 0;
   }

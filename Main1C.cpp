@@ -8,9 +8,9 @@
 //*** parameters of the integration algorithm *********
 
     const int nvar = 3; // number of variables
-    const double dt0 = 0.001; // initial time step size
+    const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 2000.0; // end time
+    const double tEnd = 100000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** model parameters *********
@@ -20,16 +20,16 @@
     const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
     const double l = 1e-3; // loss of plasmid 
-    const double c = pow(10, -8.8); // conjugation factor
-    const double D = 0.35; // flow rate
+    const double c = pow(10, -9); // conjugation factor
+    const double D = 0.25; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
     double Sin; //inflow concentration of resource   
-    const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
+
 
 
 //*** ODE description *********
-void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt, double S)
+void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt)
 {
 
     double R = x[0]; // Resource
@@ -39,7 +39,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     double psi0 = ((r0 * R) / (K0 + R)); // growth rate of plasmid free bacteria
     double psi1 = ((r1 * R) / (K1 + R)); // growth rate of plasmid bearing bacteria
 
-    dxdt[0] = D * (S - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
+    dxdt[0] = D * (Sin - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
     dxdt[1] = psi0 * N0  - D * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
     dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
  }
@@ -52,7 +52,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
 //*** The Bogacki-Shampine stepper *********
 
-bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h, double S)
+bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<double>&dxdt, double &h)
 {
 
     // step 2
@@ -62,7 +62,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] + 0.5 * h * dxdt[i];
     }
     std::vector<double> dxdt2(nvar);
-    rhs(t + 0.5 * h, xtmp, dxdt2, S);
+    rhs(t + 0.5 * h, xtmp, dxdt2);
 
     // step 3
     for(int i = 0; i < nvar; ++i)
@@ -70,7 +70,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] + 0.75 * h * dxdt2[i];
     }
     std::vector<double> dxdt3(nvar);
-    rhs(t + 0.75 * h, xtmp, dxdt3, S);
+    rhs(t + 0.75 * h, xtmp, dxdt3);
 
     // step 4
     for(int i = 0; i < nvar; ++i)
@@ -78,7 +78,7 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
         xtmp[i] = x[i] +(1.0/9.0) * h *(2 * dxdt[i] + 3 * dxdt2[i] + 4 * dxdt3[i]) ;
     }
     std::vector<double> dxdt4(nvar);
-    rhs(t + h, xtmp, dxdt4, S);
+    rhs(t + h, xtmp, dxdt4);
 
     double errMax = 0.0;
     for(int i = 0; i < nvar; ++i) 
@@ -128,99 +128,86 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
     }
 }
 
+void do_analysis(std::string output_filename, const std::vector<double>& pars) 
+{
+  double initialN0 = 1.0;
+  double initialN1 = 1.0e-5;
+
+   // give initial values
+  std::vector<double> x(nvar);
+  x[0] = Sin;
+  x[1] = initialN0;
+  x[2] = initialN1;
+  std::vector<double> dxdt(nvar);
+  rhs(0.0, x, dxdt);
+
+  // start numerical integration
+  int nOK = 0, nStep = 0;
+//  double dtMin = dt0, dtMax = kdMinH;
+  double t;
+  double dt;
+  for(t = 0.0, dt = dt0; t < tEnd; ++nStep)
+  {
+      if(BogackiShampineStepper(t, x, dxdt, dt))
+      {
+          ++nOK;
+      }
+      if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
+      {
+          break;
+      }
+  }
+
+  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)
+  {
+    x[2] = 0;
+  }
+  if (fabs(dxdt[1]) < 1.0e-6 && x[1] < initialN0 * 1000)
+  {
+    x[1] = 0;
+  }
+
+  std::ofstream ofs(output_filename.c_str(), std::ios::app);
+   if(!ofs.is_open())
+       throw std::runtime_error("unable to open file.\n");
+
+  for(size_t i = 0; i < pars.size(); ++i ){
+    ofs << pars[i] << ',';
+  } ofs << x[1] << ',' << "N0" << ',' << dxdt[1] << '\n';
+
+  for(size_t i = 0; i < pars.size(); ++i ){
+    ofs << pars[i] << ',';
+  } ofs << x[2] << ',' << "N1"  << ',' << dxdt[2] << '\n';
+
+
+  ofs.close();
+}
+
+
  //*** function main() *********
 
 int main()
 {
     try {
-        // open data file
-        std::ofstream ofs("ForSin1C8.csv");
-        if(!ofs.is_open())
-        {
-            throw std::runtime_error("unable to open file.\n");
-        }   
+    std::string file_name = "results1comp0.25.csv";
+    std::ofstream ofs(file_name.c_str());
+    // give first row with variable names
+    ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "DXDT" << "\n";
+    ofs.close();
 
-        // give first row with variable names
-        ofs << "popsize" << ',' << "population" << ',' << "Sin" << "\n";
-
-        // loop over the Sin values to be tested 
-        for (Sin = 10.0; Sin < 70.0; ++Sin)
-        {  
-            // check if it's running 
-            std::cout << "x" << "\n";
-            // give initial values
-            std::vector<double> x(nvar);
-            x[0] = Sin;
-            x[1] = 1.0;
-            x[2] = 1.0;
-            std::vector<double> dxdt(nvar);
-            rhs(0.0, x, dxdt, Sin);
-
-            // start numerical integration
-            int nOK = 0, nStep = 0;
-            double dtMin = dt0, dtMax = kdMinH;
-            double t;   
-            for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
-            {
-                if(BogackiShampineStepper(t, x, dxdt, dt, Sin))
-                {
-                    ++nOK;
-                }
-
-                if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
-                {
-                    std::cout << " Stopped " << '\n';
-                    break; 
-                } 
-           
-                if(dt < dtMin)
-                {
-                    dtMin = dt;
-                }
-                else if(dt > dtMax)
-                {
-                    dtMax = dt;
-                }
-            }
-
-            // report integration data
-            std::cout << "integration complete.\n"
-            << "number of steps : " << nStep << '\n'
-            << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
-            << "average step size : " << tEnd / nStep << '\n'
-            << "min step size : " << dtMin << '\n'
-            << "max step size : " << dtMax << "\n\n";
-
-            // return final population sizes
-            std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
-
-            // return alpha
-            std::cout << "alpha = "  << alfa << "\n";
-
-            // return concentration of plasmid bearing bacteria
-            std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
-
-            // report wether equilibrium (as indicated above) was found
-            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6)
-            {
-                std::cout << "equilibrium was reached for all populations" <<  "\n\n";
-            }
-            else
-            {
-                std::cout << "for one or more populations the equillibrium was not reached" << "\n\n";
-            }
-
-            // write data to file
-            ofs << x[1] << ',' << "N0" << ',' << Sin << '\n'
-                << x[2] << ',' << "N1" << ',' << Sin << '\n';
-
-        }
-        ofs.close();
+      for (double local_Sin = 5 ; local_Sin < 100; ++local_Sin ) 
+      {
+        Sin = local_Sin;
+        std::vector<double> pars = {local_Sin};
+        do_analysis(file_name, pars);
+        std::cout << Sin << "\n";
+      }
     }
-    catch(std::exception &error) 
+    catch(std::exception &error)
     {
     std::cerr << "error: " << error.what();
     exit(EXIT_FAILURE);
     }
+   
     return 0;
 }
