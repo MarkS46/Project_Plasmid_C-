@@ -12,7 +12,7 @@
     const int nvar = 6; // number of variables
     const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 10000.0; // end time
+    const double tEnd = 100000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 //*** model parameters *********
 
@@ -30,26 +30,26 @@
     const double WL = 4.5; // Rate at which the nutrient solution enters (and leaves) the chemostat (lumen)
     const double cL = pow(10, -9); // conjugation factor in lumen
     const double DL = WL/VL; // flow rate in lumen
-    const double SLin = 33; // resource coming in to the lumen
-    double KLW0 = 1e-9; // attaching of plasmid free cells to wall
-    const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
+    const double SLin = 30; // resource coming in to the lumen
+    const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
+    double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
     const double d0L = DL; // death rate of plasmid free cells in  lumen
     const double d1L = DL; // death rate of plasmid bearing cells in lumen
 
     // at wall
     const double VW = 2.0; // Volume of wall chemostat 
-    const double WW = 0.70; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
+    const double WW = 0.50; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
     const double cW = pow(10, -9); // conjugation factor at wall
     const double DW = WW/VW; // flow rate at wall
     const double d0W = DW; // death rate of plasmide free at wall
     const double d1W = DW; // deat rate of plasmid bearing at wall
-    const double SWin = 9; // resource coming to the wall
+    const double SWin = 16; // resource coming to the wall
     const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
     const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
 
     const std::vector< double > D = {DW, DL};
-    std::vector< double > Sin = {SWin, SLin};
-    const std::vector< double > c = {cW, cL};
+    const std::vector< double > Sin = {SWin, SLin};
+    std::vector< double > c = {cW, cL};
 
 //*** ODE description *********
 
@@ -214,25 +214,25 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
       {
           ++nOK;
       }
-      if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4 && fabs(dxdt[4]) < 1.0e-4 && fabs(dxdt[5]) < 1.0e-4)
+      if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[4]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6)
       {
           break;
       }
   }
-
-  if (dxdt[2] > -1.0e-4 && dxdt[2] < 0 && x[2] < initialN1)
+  
+  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  
   {
     x[2] = 0;
   }
-    if (dxdt[5] > -1.0e-4 && dxdt[5] < 0 && x[5] < initialN1) 
+  if (fabs(dxdt[5]) < 1.0e-6 && x[5] < initialN1 * 1000)
   {
     x[5] = 0;
   }
-  if (dxdt[1] > -1.0e-4 && dxdt[1] < 0 && x[1] < initialN0)
+  if (fabs(dxdt[1]) < 1.0e-6 && x[1] < initialN0 * 1000)
   {
     x[1] = 0;
   }
-  if (dxdt[4] > -1.0e-4 && dxdt[4] < 0 && x[4] < initialN0) 
+  if (fabs(dxdt[4]) < 1.0e-6 && x[4] < initialN0 * 1000)
   {
     x[4] = 0;
   }
@@ -256,7 +256,7 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   for(size_t i = 0; i < pars.size(); ++i ){
     ofs << pars[i] << ',';
   } ofs << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';
-
+  
   ofs.close();
 }
 
@@ -267,18 +267,18 @@ int main()
 {
     try {
 
-      std::string file_name = "resultsKLW0fy.csv";
+      std::string file_name = "redemptionRobgay.csv";
       std::ofstream ofs(file_name.c_str());
       // give first row with variable names
-      ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
+      ofs  << "pars1" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
       ofs.close();
 
-      for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -0.5); local_KLW0 *= 2 ) 
+      for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -2); local_KLW0 *= 2) 
       {
-        KLW0 = local_KLW0;
-        std::vector<double> pars = {local_KLW0};
+        KLW1 = local_KLW0; 
+        std::vector<double> pars = {KLW1};
         do_analysis(file_name, pars);
-        std::cout << local_KLW0 << "\n";
+        std::cout << KLW1 << "\n";
       }
     }
     catch(std::exception &error)

@@ -20,7 +20,7 @@
     const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
     const double l = 1e-3; // loss of plasmid 
-    const double c = pow(10, -9); // conjugation factor
+    const double c = pow(10, -9.5); // conjugation factor
     const double D = 0.25; // flow rate
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
@@ -158,6 +158,7 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
       }
   }
 
+
   if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)
   {
     x[2] = 0;
@@ -166,6 +167,8 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   {
     x[1] = 0;
   }
+
+  
 
   std::ofstream ofs(output_filename.c_str(), std::ios::app);
    if(!ofs.is_open())
@@ -188,20 +191,23 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
 
 int main()
 {
-    try {
-    std::string file_name = "results1comp0.25.csv";
-    std::ofstream ofs(file_name.c_str());
-    // give first row with variable names
-    ofs  << "pars" << ',' << "popsize" << ',' << "population" << ',' << "DXDT" << "\n";
-    ofs.close();
+    try 
+    {
+        std::string file_name = "forsinconjug5.csv";
+        std::ofstream ofs(file_name.c_str());
+        // give first row with variable names
+        ofs  << "pars1" << ',' << "popsize" << ',' << "population" << ',' << "DXDT" << "\n";
+        ofs.close();
 
-      for (double local_Sin = 5 ; local_Sin < 100; ++local_Sin ) 
-      {
-        Sin = local_Sin;
-        std::vector<double> pars = {local_Sin};
-        do_analysis(file_name, pars);
-        std::cout << Sin << "\n";
-      }
+
+            for (double local_Sin = 5 ; local_Sin < 100; ++local_Sin ) 
+            {
+                Sin = local_Sin;
+                std::vector<double> pars = {local_Sin};
+                do_analysis(file_name, pars);
+                std::cout << Sin << "\n";
+            }
+        
     }
     catch(std::exception &error)
     {
