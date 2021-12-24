@@ -5,29 +5,36 @@
 #include <cstdlib>
 #include <cmath> 
 
+//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 1 *********
+
+// This script provides a simple time based simulation for the Stewart and Levin model
+// The parameters are currently set to have no persistence of the plasmid
+// Increasing the input resource concentraton to for example 25 will show persistence
+// In this script no extincition criteria is set for it was not used in the report visualization
+// that means that you will not see any concentrations going to 0 because this takes a long time
+// if at the end of the simulation however you will see a decreasing concentration that means it will most likely go extinct.
+
 //*** model parameters *********
 
     const double K0 = 4.0; // half saturation constant of plasmid bearing 
     const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
-    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
-    const double l = 1e-3; // loss of plasmid 
-    const double c = 1e-9; // conjugation factor
-    const double D = 0.55; // flow rate
+    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
+    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
+    const double l = 1e-3; // loss of plasmid by divsion
+    const double c = 1e-9; // conjugation rate
+    const double D = 0.25; // rate of turnover
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
-    const double Sin = 50; // inflow concentration of food    
+    const double Sin = 16; // input resource concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
-
 
 //*** ODE description *********
 
 void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt)
 {
-
-    double R = x[0]; // Resource
-    double N0 = x[1]; // Plasmid free
-    double N1 = x[2]; // Plasmid bearing 
+    double R = x[0]; // Resource concentration
+    double N0 = x[1]; // Plasmid free concentration
+    double N1 = x[2]; // Plasmid bearing concentration
 
     double psi0 = ((r0 * R) / (K0 + R)); // growth rate of plasmid free bacteria
     double psi1 = ((r1 * R) / (K1 + R)); // growth rate of plasmid bearing bacteria
@@ -46,7 +53,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const int nvar = 3; // number of variables
     const double dt0 = 0.001; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 10000.0; // end time
+    const double tEnd = 100000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
@@ -130,21 +137,26 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
 
 int main()
 {
-    try {
+    try 
+    {
         // open data file
-        std::ofstream ofs("Basic1C.csv");
+        std::ofstream ofs("Basic1C2.csv");
         if(!ofs.is_open())
         {
             throw std::runtime_error("unable to open file.\n");
         }      
+
         // give first row with variable names
         ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "resource input" << "\n";
 
         // give initial values
+        double initialN0 = 1.0;
+        double initialN1 = 1e-5;
+
         std::vector<double> x(nvar);
         x[0] = Sin;
-        x[1] = 1.0;
-        x[2] = 1.0;
+        x[1] = initialN0;
+        x[2] = initialN1;
         std::vector<double> dxdt(nvar);
         rhs(0.0, x, dxdt);
 
@@ -157,11 +169,10 @@ int main()
         {
             if(BogackiShampineStepper(t, x, dxdt, dt))
             {
-                ++nOK;
+                ++nOK; // number of OK steps to be recorded
             }
-            if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4)
+            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6) // if change very little, stop (equilibrium most likely reached)
             {
-                std::cout << " Stopped " << '\n';
                 break; 
             } 
             if(dt < dtMin) // keep track of the smallest step size
@@ -173,7 +184,7 @@ int main()
                 dtMax = dt;
             }
 
-            if(t > tsav) // save the data every 0.5 time steps
+            if(t > tsav) // save the data every 0.05 time steps
             {
                 ofs << t << ',' << x[1] << ',' << "N0" << ',' << Sin << '\n' 
                     << t << ',' << x[2] << ',' << "N1" << ',' << Sin << '\n'; 
@@ -189,7 +200,7 @@ int main()
         << "min step size : " << dtMin << '\n'
         << "max step size : " << dtMax << "\n\n";
 
-        // return population sizes at end of simulation
+        // return population concentrations at end of simulation
         std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
 
         // return alpha
@@ -198,16 +209,6 @@ int main()
         // return concencration of plasmid bearing cells
         std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
 
-        // Notify if all equilibria were found
-        if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4)
-        {
-            std::cout << "populations have reached equillibrium\n\n";
-        }
-        else
-        {
-            std::cout << "1 or more populations have not reached equillibrium\n\n";
-        }
-        
         ofs.close();
     }
     catch(std::exception &error) 

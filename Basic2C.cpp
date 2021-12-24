@@ -6,44 +6,46 @@
 #include <cmath> 
 #include <string>
 
+//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 2 *********
 
-//*** parameters of the integration algorithm *********
+// this script provides a time simulation of the two compartment model
+// right hand side definition is here very bulky but will be improved in a more advanced script later
+// this script again was not used for visualisation in the report but was examined to check the dynamics
+// Currently the parameters are set to a scenario with a net flux of 0 
+// in which in both compartments the plasmid will not persist 
+// increasing the resource input concentration in the lumen to 40 and in the wall to 25 will show persistence
+// In this script it is assumed that both compartments are of the same size 
+// in Main2C.cpp this will be accounted for more properly 
 
-    const int nvar = 6; // number of variables
-    const double dt0 = 0.0005; // initial time step size
-    const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 10000.0; // end time
-    const double tolerance = 1.0e-6; // acceptable local error during numerical integration
-    std::string name = "Basic2C50.csv";
 //*** model parameters *********
 
     // general 
     const double K0 = 4.0; // half saturation constant of plasmid free
     const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
-    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
-    const double l = 1e-3; // loss of plasmid 
-    const double r0 = 0.738; // max growth rate of plasmid free
+    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
+    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
+    const double l = 1e-3; // loss of plasmid by divsion
+    const double r0 = 0.738; // max growth rate of plasmid free 
     const double r1 = 0.6642; // max growth rate of plasmid bearing
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
     // in lumen
-    const double cL = pow(10, -9); // conjugation factor in lumen
-    const double DL = 0.45; // flow rate in lumen
-    const double SLin = 33; // resource coming in to the lumen
+    const double cL = 1e-9; // conjugation rate in lumen
+    const double DL = 0.45; // turnover rate in lumen
+    const double SLin = 40; // resource coming in to the lumen
     const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
     const double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
     const double d0L = DL; // death rate of plasmid free cells in  lumen
     const double d1L = DL; // death rate of plasmid bearing cells in lumen 
 
     // at wall
-    const double cW = pow(10, -9); // conjugation factor at wall
-    const double DW = 0.35; // flow rate at wall     
-    const double d0W = DW; // death rate of plasmide free at wall 
-    const double d1W = DW; // deat rate of plasmid bearing at wall
-    const double SWin = 9; // resource coming to the wall
+    const double cW = 1e-9; // conjugation rate at wall
+    const double DW = 0.25; // turnover rate at wall     
+    const double SWin = 25; // resource coming to the wall
     const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
     const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
+    const double d0W = DW; // death rate of plasmide free at wall 
+    const double d1W = DW; // death rate of plasmid bearing at wall
 
 //*** ODE description *********
 
@@ -51,38 +53,42 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 {
     // main variables
 
-    double RW = x[0]; // resource at wall
-    double N0W = x[1]; // plasmid free at wall
-    double N1W = x[2]; // plasmid bearing at wall 
-    double RL = x[3]; // resource at wall
-    double N0L = x[4]; // plasmid free in lumen
-    double N1L = x[5]; // plasmid bearing in lumen
+    double RW = x[0]; // resource concentration at wall
+    double N0W = x[1]; // plasmid free concentration at wall
+    double N1W = x[2]; // plasmid bearing concentraiton at wall 
+    double RL = x[3]; // resource concentration at wall
+    double N0L = x[4]; // plasmid free concentration in lumen
+    double N1L = x[5]; // plasmid bearing concentration in lumen
     
     // at wall
 
-    double psi0W = ((r0 * RW) / (K0 + RW)); 
-    double psi1W = ((r1 * RW) / (K1 + RW)); 
+    double psi0W = ((r0 * RW) / (K0 + RW)); // growth rate of plasmid free cells at the wall
+    double psi1W = ((r1 * RW) / (K1 + RW)); // growth rate of plasmid bearing cells at the wall
 
     dxdt[0] = DW * (SWin - RW) - e0 * psi0W * N0W - e1 * psi1W * N1W; // differential equation of the resource at the wall
-    dxdt[1] = psi0W * N0W  - d0W * N0W + l * N1W - cW * N0W * N1W + KLW0 * N0L - KWL0 * N0W; // differential equation of the plasmid free cells at the wall
-    dxdt[2] = psi1W * N1W - d1W * N1W - l * N1W + cW * N0W * N1W + KLW1 * N1L - KWL1 * N1W; // differential equation of the plasmid bearing cells at the wall
+    dxdt[1] = psi0W * N0W  - d0W * N0W + l * N1W - cW * N0W * N1W + KLW0 * N0L - KWL0 * N0W; // differential equation of the plasmid free cell concentration at the wall
+    dxdt[2] = psi1W * N1W - d1W * N1W - l * N1W + cW * N0W * N1W + KLW1 * N1L - KWL1 * N1W; // differential equation of the plasmid bearing cell concentration at the wall
  
     // in lumen
 
-    double psi0L = ((r0 * RL) / (K0 + RL)); 
-    double psi1L = ((r1 * RL) / (K1 + RL)); 
+    double psi0L = ((r0 * RL) / (K0 + RL)); // growth rate of plasmid free cells at the wall
+    double psi1L = ((r1 * RL) / (K1 + RL)); // growth rate of plasmid bearing cells at the wall 
 
-    dxdt[3] = DL * (SLin - RL) - e0 * psi0L * N0L - e1 * psi1L * N1L; // differential equation of the resource at the wall
-    dxdt[4] = psi0L * N0L  - d0L * N0L + l * N1L - cL * N0L * N1L + KWL0 * N0W - KLW0 * N0L; // differential equation of the plasmid free cells at the wall
-    dxdt[5] = psi1L * N1L - d1L * N1L - l * N1L + cL * N0L * N1L + KWL1 * N1W - KLW1 * N1L; // differential equation of the plasmid bearing cells at the wall
+    dxdt[3] = DL * (SLin - RL) - e0 * psi0L * N0L - e1 * psi1L * N1L; // differential equation of the resource concentration at the wall
+    dxdt[4] = psi0L * N0L  - d0L * N0L + l * N1L - cL * N0L * N1L + KWL0 * N0W - KLW0 * N0L; // differential equation of the plasmid free cell concenctration at the wall
+    dxdt[5] = psi1L * N1L - d1L * N1L - l * N1L + cL * N0L * N1L + KWL1 * N1W - KLW1 * N1L; // differential equation of the plasmid bearing cell concentration at the wall
 }
-
-//*** ODE integration routine *********
+//*** parameters of the integration algorithm *********
 
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
     const double kdGrowMax = 1.3; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
+    const int nvar = 6; // number of variables
+    const double dt0 = 0.0005; // initial time step size
+    const double dtsav = 0.05; // save data after time steps
+    const double tEnd = 100000.0; // end time
+    const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
 
@@ -166,48 +172,54 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
 
 int main()
 {
-    try {
+    try 
+    {
+        // file name
+        std::string name = "Basic2C2.csv";
+
         // open data file
         std::ofstream ofs(name);
         if(!ofs.is_open())
             throw std::runtime_error("unable to open file.\n");
            
-
         // give first row with variable names
         ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
 
-         // give initial values
+        // give initial values
+        double initialN0 = 1.0;
+        double initialN1 = 1e-5;
+
         std::vector<double> x(nvar);
         x[0] = SWin;
-        x[1] = 1.0;
-        x[2] = 1.0;
+        x[1] = initialN0;
+        x[2] = initialN1;
         x[3] = SLin;
-        x[4] = 1.0;
-        x[5] = 1.0;
+        x[4] = initialN0;
+        x[5] = initialN1;
         std::vector<double> dxdt(nvar);
         rhs(0.0, x, dxdt);
 
-        // start numerical integration
+        // initiate parameters for the integration
         int nOK = 0, nStep = 0;
-        double dtMin = dt0, dtMax = kdMinH;
-        double t;
-        double tsav;
-        double dt;
-        for(t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
+        double dtMin = dt0, dtMax = kdMinH; 
+
+
+        // start numerical integration
+        for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep) 
         {
             if(BogackiShampineStepper(t, x, dxdt, dt))
             {
                 ++nOK;
             }
-            if (fabs(dxdt[1]) < 1.0e-4 && fabs(dxdt[2]) < 1.0e-4 && fabs(dxdt[4]) < 1.0e-4 && fabs(dxdt[5]) < 1.0e-4)
+            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[4]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6)
             {
-                break;
+                break; // if change very little, stop (equilibrium most likely reached)
             }
-            if(dt < dtMin)
+            if(dt < dtMin) // keep track of the smallest step size
             {
                 dtMin = dt;
             }
-            else if(dt > dtMax)
+            else if(dt > dtMax) // keep track of the largest step size
             {
                 dtMax = dt;
             }
@@ -222,25 +234,22 @@ int main()
             }
         }
 
-        std::cout << "t = " << t
-                          << " \n at the wall: \n" 
-                          << "plasmid free = " << x[1]  << "   plasmid bearing = " << x[2] << "   resource = " << x[0] 
-                          << "\n in the lumen: \n" 
-                          << "plasmid free = " << x[4]  << "   plasmid bearing = " << x[5] << "   resource = " << x[3] << "\n"; 
+        // return final concentration
+        std::cout << " \n at the wall: \n" 
+                  << "plasmid free = " << x[1]  << "   plasmid bearing = " << x[2] << "   resource = " << x[0] 
+                  << "\n in the lumen: \n" 
+                  << "plasmid free = " << x[4]  << "   plasmid bearing = " << x[5] << "   resource = " << x[3] << "\n"; 
         
-        
-        
-        /*// report integration data
+        // report integration data
         std::cout << "\nintegration complete.\n"
         << "number of steps : " << nStep << '\n'
         << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
         << "average step size : " << tEnd / nStep << '\n'
         << "min step size : " << dtMin << '\n'
-        << "max step size : " << dtMax << '\n'
-        << "check = " << dxdt[1] << "  " << dxdt[2] << "  " << dxdt[4] << "  " << dxdt[5] << "\n ";
+        << "max step size : " << dtMax << '\n';
 
         // return alfa
-        std::cout << "alpha = "  << alfa << "\n"; */
+        std::cout << "alpha = "  << alfa << "\n"; 
         
         ofs.close();
     }

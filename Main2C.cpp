@@ -6,67 +6,76 @@
 #include <cmath>
 #include <string>
 
+//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 4 *********
 
-//*** parameters of the integration algorithm *********
+// This is the final script of the report, with which figure 3 and 4 were produced
+// equillibrium values are recorded for different parameter values
+// currently parameters are set to prodcue the figure 4 A2 
+// that is stronger attachment of the plasmid free cells to the wall with also more conjugation at the wall
+// Adjustments can be made to recreate the other figures
 
-    const int nvar = 6; // number of variables
-    const double dt0 = 0.0005; // initial time step size
-    const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 100000.0; // end time
-    const double tolerance = 1.0e-6; // acceptable local error during numerical integration
+
 //*** model parameters *********
 
-    // general
-    const double K0 = 4.0; // half saturation constant of plasmid free
-    const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing
-    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free
-    const double l = 1e-3; // loss of plasmid
-    const double r0 = 0.738; // max growth rate of plasmid free
-    const double r1 = 0.6642; // max growth rate of plasmid bearing
+  // general
+  const double K0 = 4.0; // half saturation constant of plasmid free
+  const double K1 = 4.0; // half saturation constant of plasmid bearing
+  const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
+  const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
+  const double l = 1e-3; // loss of plasmid by divison
+  const double r0 = 0.738; // max growth rate of plasmid free 
+  const double r1 = 0.6642; // max growth rate of plasmid bearing
 
-    // in lumen
-    const double VL = 10.0; // Volume of lumen chemostat
-    const double WL = 4.5; // Rate at which the nutrient solution enters (and leaves) the chemostat (lumen)
-    const double cL = pow(10, -9); // conjugation factor in lumen
-    const double DL = WL/VL; // flow rate in lumen
-    const double SLin = 30; // resource coming in to the lumen
-    const double KLW0 = 1e-9; // attaching of plasmid free cells to wall
-    double KLW1 = 1e-9; // attaching of plasmid bearing cells to wall
-    const double d0L = DL; // death rate of plasmid free cells in  lumen
-    const double d1L = DL; // death rate of plasmid bearing cells in lumen
+  // in lumen
+  const double VL = 10.0; // Volume of lumen chemostat
+  const double WL = 4.5; // Rate at which the nutrient solution enters (and leaves) the chemostat (lumen)
+  const double cL = pow(10, -9); // conjugation factor in lumen
+  const double DL = WL/VL; // turnover rate in lumen
+  const double SLin = 30; // input resource concentration of the lumen
+  double KLW0 = 1e-9; // attaching rate of plasmid free cells to wall
+  double KLW1 = 1e-9; // attaching rate of plasmid bearing cells to wall
+  const double d0L = DL; // death rate of plasmid free cells in lumen
+  const double d1L = DL; // death rate of plasmid bearing cells in lumen
 
-    // at wall
-    const double VW = 2.0; // Volume of wall chemostat 
-    const double WW = 0.50; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
-    const double cW = pow(10, -9); // conjugation factor at wall
-    const double DW = WW/VW; // flow rate at wall
-    const double d0W = DW; // death rate of plasmide free at wall
-    const double d1W = DW; // deat rate of plasmid bearing at wall
-    const double SWin = 16; // resource coming to the wall
-    const double KWL0 = 1e-9; // dettaching of plasmid free cells of wall
-    const double KWL1 = 1e-9; // dettaching of plasmid bearing cells of wall
+  // at wall
+  const double VW = 2.0; // Volume of wall chemostat 
+  const double WW = 0.50; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
+  const double cW = pow(10, -8.5); // conjugation factor at wall
+  const double DW = WW/VW; // turnover at wall
+  const double SWin = 16; // input resource concentration at the wall
+  const double KWL0 = 1e-9; // dettaching rate of plasmid free cells of wall
+  const double KWL1 = 1e-9; // dettaching rate of plasmid bearing cells of wall
+  const double d0W = DW; // death rate of plasmide free at wall
+  const double d1W = DW; // deat rate of plasmid bearing at wall
 
-    const std::vector< double > D = {DW, DL};
-    const std::vector< double > Sin = {SWin, SLin};
-    std::vector< double > c = {cW, cL};
+  // vectors containg the wall and lumen specific parameters
+  const std::vector< double > D = {DW, DL};
+  const std::vector< double > Sin = {SWin, SLin};
+  const std::vector< double > c = {cW, cL};
 
 //*** ODE description *********
 
-enum location {Wall, Lumen};
+  // enumerating wall and lumen in location
+  enum location {Wall, Lumen};
 
-void update_state(const std::vector<double> &x, std::vector<double> &dxdt, location loc) {
+
+// function to update the sate of the concentration, with the exception of migration which will be added seperately
+void update_state(const std::vector<double> &x, std::vector<double> &dxdt, location loc) 
+{
+  // define both indexes
   size_t init_index = 0;
   if (loc == Lumen) init_index = 3;
 
+  // define resource, plasmid free and plamsid bearing concentrations
   double R =  x[init_index];
   double N0 = x[init_index + 1];
   double N1 = x[init_index + 2];
 
+  // growth rates of plasmid free and plasmid bearing cells
   const double psi0 = ((r0 * R) / (K0 + R));
   const double psi1 = ((r1 * R) / (K1 + R));
 
-
+  // acces the above vectors to calculate location specific difference and apply this to the correct population
   dxdt[init_index] = D[loc] * (Sin[loc] - R) - e0 * psi0 * N0 - e1 * psi1 * N1;
 
   dxdt[init_index + 1] = psi0 * N0 - D[loc] * N0 + l * N1 - c[loc] * N0 * N1;
@@ -76,23 +85,27 @@ void update_state(const std::vector<double> &x, std::vector<double> &dxdt, locat
   return;
 }
 
+// function to add the change due to migration
 void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt) 
 {
-
   double N0W = x[1]; // plasmid free at wall
   double N1W = x[2]; // plasmid bearing at wall
 
   double N0L = x[4]; // plasmid free in lumen
   double N1L = x[5]; // plasmid bearing in lumen
 
-  dxdt[1] += (KLW0 * N0L * VL)/VW - KWL0 * N0W; // Idk really but I thought this way I can compensate for the 
-  dxdt[2] += (KLW1 * N1L * VL)/VW - KWL0 * N1W; // transferring of cells into the different volumes. 
-  dxdt[4] += (KWL0 * N0W * VW)/VL - KLW0 * N0L; // and this is how i could portray the volumes 
+  // compensate aswell for the difference in volume
+  // by first measuring how many cells will transfer
+  // and dividing this by their destination volume
+  dxdt[1] += (KLW0 * N0L * VL)/VW - KWL0 * N0W;  
+  dxdt[2] += (KLW1 * N1L * VL)/VW - KWL0 * N1W; 
+  dxdt[4] += (KWL0 * N0W * VW)/VL - KLW0 * N0L; 
   dxdt[5] += (KWL1 * N1W * VW)/VL - KLW1 * N1L;
 
   return;
 }
 
+// right hand site definition by accesing previously defined functions
 void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxdt)
 {
   update_state(x, dxdt, Wall);
@@ -101,12 +114,17 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
   exchange_cells(x, dxdt);
 }
 
-//*** ODE integration routine *********
+//*** parameters of the integration algorithm *********
 
     const double kdShrinkMax = 0.1; // decrease step size by no more than this factor
     const double kdGrowMax = 1.3; // increase step size by no more than this factor
     const double kdSafety = 0.9; // safety factor in adaptive stepsize control
     const double kdMinH = 1.0e-6; // minimum step size
+    const int nvar = 6; // number of variables
+    const double dt0 = 0.0005; // initial time step size
+    const double dtsav = 0.05; // save data after time steps
+    const double tEnd = 100000.0; // end time
+    const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
 
@@ -186,12 +204,14 @@ bool BogackiShampineStepper(double &t, std::vector<double> &x,  std::vector<doub
     }
 }
 
+// analysis function to allow for easy looping over variables
 void do_analysis(std::string output_filename, const std::vector<double>& pars) 
 {
+  // give initial values
   double initialN0 = 1.0;
   double initialN1 = 1.0e-5;
 
-   // give initial values
+
   std::vector<double> x(nvar);
   x[0] = SWin;
   x[1] = initialN0;
@@ -204,24 +224,20 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
 
   // start numerical integration
   int nOK = 0, nStep = 0;
-//  double dtMin = dt0, dtMax = kdMinH;
-  double t;
-  double tsav;
-  double dt;
-  for(t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep)
+  for(double t = 0.0, tsav = 0.0, dt = dt0; t < tEnd; ++nStep)
   {
-      if(BogackiShampineStepper(t, x, dxdt, dt))
-      {
-          ++nOK;
-      }
-      if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[4]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6)
-      {
-          break;
-      }
+    if(BogackiShampineStepper(t, x, dxdt, dt))
+    {
+      ++nOK;
+    }
+    if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[4]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6)
+    {
+       break; // if change very little, stop 
+    }
   }
   
-  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  
-  {
+  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
+  {                                                       // times larger than intial value, set it to 0 (cause it will go extinct) 
     x[2] = 0;
   }
   if (fabs(dxdt[5]) < 1.0e-6 && x[5] < initialN1 * 1000)
@@ -238,24 +254,35 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   }
 
   std::ofstream ofs(output_filename.c_str(), std::ios::app);
-   if(!ofs.is_open())
-       throw std::runtime_error("unable to open file.\n");
+  if(!ofs.is_open())
+  {
+    throw std::runtime_error("unable to open file.\n");
+  }
 
-  for(size_t i = 0; i < pars.size(); ++i ){
+  // write the paramater(s) followed by the concentration of the cell types
+  for(size_t i = 0; i < pars.size(); ++i )
+  {
     ofs << pars[i] << ',';
-  } ofs << x[1] << ',' << "N0" << ',' << "Wall" << '\n';
+  } 
+  ofs << x[1] << ',' << "N0" << ',' << "Wall" << '\n';
 
-  for(size_t i = 0; i < pars.size(); ++i ){
+  for(size_t i = 0; i < pars.size(); ++i )
+  {
     ofs << pars[i] << ',';
-  } ofs << x[2] << ',' << "N1" << ',' << "Wall" << '\n';
+  } 
+  ofs << x[2] << ',' << "N1" << ',' << "Wall" << '\n';
 
-  for(size_t i = 0; i < pars.size(); ++i ){
+  for(size_t i = 0; i < pars.size(); ++i )
+  {
     ofs << pars[i] << ',';
-  } ofs << x[4] << ',' << "N0" << ',' << "Lumen" << '\n';
+  } 
+  ofs << x[4] << ',' << "N0" << ',' << "Lumen" << '\n';
 
-  for(size_t i = 0; i < pars.size(); ++i ){
+  for(size_t i = 0; i < pars.size(); ++i )
+  {
     ofs << pars[i] << ',';
-  } ofs << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';
+  } 
+  ofs << x[5] << ',' << "N1" << ',' << "Lumen" << '\n';
   
   ofs.close();
 }
@@ -265,26 +292,30 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
 
 int main()
 {
-    try {
+  try 
+  {
+    // provide fil name
+    std::string file_name = "Main2C.csv";
+    std::ofstream ofs(file_name.c_str());
 
-      std::string file_name = "redemptionRobgay.csv";
-      std::ofstream ofs(file_name.c_str());
-      // give first row with variable names
-      ofs  << "pars1" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
-      ofs.close();
+    // give first row with variable names
+    ofs  << "pars1" << ',' << "pars2" << ',' << "popsize" << ',' << "population" << ',' << "location" << "\n";
+    ofs.close();
 
-      for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -2); local_KLW0 *= 2) 
-      {
-        KLW1 = local_KLW0; 
-        std::vector<double> pars = {KLW1};
-        do_analysis(file_name, pars);
-        std::cout << KLW1 << "\n";
-      }
-    }
-    catch(std::exception &error)
+    // do analysis for different values of the attachement rates, and increased conjugation  
+    for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -2); local_KLW0 *= 2) 
     {
-    std::cerr << "error: " << error.what();
-    exit(EXIT_FAILURE);
+      KLW1 = local_KLW0; 
+      KLW0 = local_KLW0 * 10;
+      std::vector<double> pars = {KLW1, KLW0};
+      do_analysis(file_name, pars);
+      std::cout << KLW1 << ',' << KLW0 << "\n";
     }
-    return 0;
+  }
+  catch(std::exception &error)
+  {
+  std::cerr << "error: " << error.what();
+  exit(EXIT_FAILURE);
+  }
+  return 0;
 }
