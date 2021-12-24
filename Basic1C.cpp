@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cmath> 
 
-//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 1 *********
+//*** THE EFFECT OF WALL ATTACHMENT ON PLASMID PERSISTENCE SCRIPT 1 *********
 
 // This script provides a simple time based simulation for the Stewart and Levin model
 // The parameters are currently set to have no persistence of the plasmid

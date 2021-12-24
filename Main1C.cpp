@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <cmath> 
 
-//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 3 *********
+//*** THE EFFECT OF WALL ATTACHMENT ON PLASMID PERSISTENCE SCRIPT 3 *********
 
 // This script provides a way to record equillibrium values while varying a parameter value
 // the below found script produces the left graph in figure 1 in the report

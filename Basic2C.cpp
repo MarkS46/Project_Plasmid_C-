@@ -6,7 +6,7 @@
 #include <cmath> 
 #include <string>
 
-//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 2 *********
+//*** THE EFFECT OF WALL ATTACHMENT ON PLASMID PERSISTENCE SCRIPT 2 *********
 
 // this script provides a time simulation of the two compartment model
 // right hand side definition is here very bulky but will be improved in a more advanced script later

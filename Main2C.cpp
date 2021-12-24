@@ -6,7 +6,7 @@
 #include <cmath>
 #include <string>
 
-//*** PLASMID BEARING CELLS AND WALL ATTACHMENT SCRIPT 4 *********
+//*** THE EFFECT OF WALL ATTACHMENT ON PLASMID PERSISTENCE SCRIPT 4 *********
 
 // This is the final script of the report, with which figure 3 and 4 were produced
 // equillibrium values are recorded for different parameter values
@@ -211,7 +211,6 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   double initialN0 = 1.0;
   double initialN1 = 1.0e-5;
 
-
   std::vector<double> x(nvar);
   x[0] = SWin;
   x[1] = initialN0;
@@ -294,7 +293,7 @@ int main()
 {
   try 
   {
-    // provide fil name
+    // provide file name
     std::string file_name = "Main2C.csv";
     std::ofstream ofs(file_name.c_str());
 
