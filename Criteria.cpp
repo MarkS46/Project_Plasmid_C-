@@ -21,11 +21,11 @@
     const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
     const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
     const double l = 1e-3; // loss of plasmid by divsion
-    const double c = 1.5e-09; // conjugation rate
-    const double D = 0.25; // rate of turnover
+    const double c = 1e-8; // conjugation rate
+    const double D = 0.3; // rate of turnover
     const double r0 = 0.738; // growth rate of plasmid free
     const double r1 = 0.6642; // growth rate of plasmid bearing
-    const double Sin = 16; // input resource concentration of food    
+    const double Sin = 15; // input resource concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
 
 //*** ODE description *********
@@ -53,7 +53,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const int nvar = 3; // number of variables
     const double dt0 = 0.001; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 100000.0; // end time
+    const double tEnd = 25000000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
@@ -150,7 +150,7 @@ int main()
         ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "resource input" << "\n";
 
         // give initial values
-        double initialN0 = 2.23213e+07;
+        double initialN0 = 1.96164e+07;
         double initialN1 = 1e-5;
 
         std::vector<double> x(nvar);
@@ -192,21 +192,26 @@ int main()
             }
         }
 
-        std::cout << alfa * D * l << " has to be larger then " << c * x[1] << std::endl;  
 
         // report integration data
-        std::cout << "integration complete.\n"
+        /*std::cout << "integration complete.\n"
         << "number of steps : " << nStep << '\n'
         << "proportion bad steps : " << 1.0 - nOK * 1.0 / nStep << '\n'
         << "average step size : " << tEnd / nStep << '\n'
         << "min step size : " << dtMin << '\n'
-        << "max step size : " << dtMax << "\n\n";
+        << "max step size : " << dtMax << "\n\n";*/
 
         // return population concentrations at end of simulation
-        std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
+        std::cout << "\n" << std::endl; 
+        std::cout << alfa * D + l << " has to be smaller then " << c * initialN0 << " for plasmide persistence" << std::endl;
+        std::cout << "plasmid free = " << x[1] << " & plasmid bearing = " << x[2] <<"\n";
 
         // return alpha
-        std::cout << "alpha = "  << alfa << "\n";
+        std::cout << "alpha = " << alfa << "\n";
+        std::cout << "conjugation rate = "  << c << "\n";
+        std::cout << "loss by cell division is = "  << l << "\n";
+        std::cout << "rate of turnover is = "  << D << "\n";
+        
 
         // return concencration of plasmid bearing cells
         std::cout << "F+ = " << (x[2] / (x[1] + x[2]))*100 << "\n"; 
