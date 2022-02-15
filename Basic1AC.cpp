@@ -27,9 +27,9 @@
     const double r1 = 0.6642; // growth rate of plasmid bearing
     const double Sin = 16; // input resource concentration    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
-    const double d1 = 1e-9; // death of plasmid bearing cell by antibiotic
-    const double d0 = 1e-2; // death of plasmid free cell by antibiotic
-    const double Ain = 0; // input antibiotic concentration
+    const double d1 = 1e-2; // death of plasmid bearing cell by antibiotic
+    const double d0 = 1e-9; // death of plasmid free cell by antibiotic
+    const double Ain = 20; // input antibiotic concentration
     const double H0 = 4.0; // half saturation constant of plasmid free for antibiotics
     const double H1 = 4.0; // half saturation constant of plasmid bearing for antibiotics
     const double Adisp = 1e-5; // antibiotic needed for the death of a cell

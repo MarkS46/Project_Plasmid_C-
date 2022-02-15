@@ -24,13 +24,14 @@
     const double D = 0.25; // turnover rate
     const double r0 = 0.738; // max growth rate of plasmid free
     const double r1 = 0.6642; // max growth rate of plasmid bearing
-    double Sin;  // input resource concentration  
+    const double Sin = 16;  // input resource concentration  
     const double d1 = 1e-9; // death of plasmid bearing cell by antibiotic
     const double d0 = 1e-2; // death of plasmid free cell by antibiotic
-    const double Ain = 0; // input antibiotic concentration 
+    double Ain; // input antibiotic concentration 
     const double H0 = 4.0; // half saturation constant of plasmid free for antibiotics
     const double H1 = 4.0; // half saturation constant of plasmid bearing for antibiotics
-    const double Adisp = 1e-5; // antibiotic needed for the death of a cell
+    const double Adisp0 = 1e-5; // antibiotic needed for the death of a plasmid free cell
+    const double Adisp1 = 1e-4; // antibiotic needed for the death of a plasmid bearing cell 
 
 //*** ODE description *********
 
@@ -49,7 +50,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     dxdt[0] = D * (Sin - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
     dxdt[1] = psi0 * N0  - D * N0 + l * N1 - c * N0 * N1 - die0 * N0; // differential equation of the plasmid free cells
     dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1 - die1 * N1; // differential equation of the plasmid bearing cells
-    dxdt[3] = D * (Ain - A) - Adisp * die0 * N0 - Adisp * die1 * N1; // differential equation of the antibiotic 
+    dxdt[3] = D * (Ain - A) - Adisp0 * die0 * N0 - Adisp1 * die1 * N1; // differential equation of the antibiotic 
  }
 
 //*** parameters of the integration algorithm *********
@@ -200,6 +201,12 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
     } 
     ofs << x[2] << ',' << "N1"  << ',' << dxdt[2] << '\n';
 
+    for(size_t i = 0; i < pars.size(); ++i )
+    {
+        ofs << pars[i] << ',';
+    } 
+    ofs << x[3] << ',' << "Ab"  << ',' << dxdt[3] << '\n';
+
 
     ofs.close();
 }
@@ -211,7 +218,7 @@ int main()
     try 
     {   
         // provide file name
-        std::string file_name = "Main1AC9.csv";
+        std::string file_name = "Main1ACAdisp2.csv";
         std::ofstream ofs(file_name.c_str());
 
         // give first row with variable names
@@ -219,12 +226,12 @@ int main()
         ofs.close();
 
         // do analysis for different values of the resource input concentration 
-        for (double local_Sin = 5 ; local_Sin < 100; ++local_Sin ) 
+        for (double local_Ain = 1 ; local_Ain < 200; ++local_Ain ) 
         {
-            Sin = local_Sin;
-            std::vector<double> pars = {local_Sin};
+            Ain = local_Ain;
+            std::vector<double> pars = {local_Ain};
             do_analysis(file_name, pars);
-            std::cout << Sin << "\n";
+            std::cout << Ain << "\n";
         }
     }
 
