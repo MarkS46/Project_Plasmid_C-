@@ -20,33 +20,33 @@
   // general
   const double K0 = 4.0; // half saturation constant of plasmid free
   const double K1 = 4.0; // half saturation constant of plasmid bearing
-  const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
-  const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
+  const double e1 = 6.25 * 1e-3; // resource needed to divide once for plasmid bearing cells
+  const double e0 = 6.25 * 1e-3; // resource needed to divide once for plasmid free cells
   const double l = 1e-3; // loss of plasmid by divison
   const double r0 = 0.738; // max growth rate of plasmid free 
   const double r1 = 0.6642; // max growth rate of plasmid bearing
   const double H0 = 4.0; // half saturation constant of plasmid free for antibiotics
   const double H1 = 4.0; // half saturation constant of plasmid bearing for antibiotics
-  const double Adisp0 = 1e-5; // antibiotic needed for the death of a plasmid free cell
-  const double Adisp1 = 1e-4; // antibiotic needed for the death of a plasmid bearing cell 
-  const double d1 = 1e-9; // death of plasmid bearing cell by antibiotic
-  const double d0 = 1e-2; // death of plasmid free cell by antibiotic
+  const double Adisp0 = 1e-2; // antibiotic needed for the death of a plasmid free cell
+  const double Adisp1 = 1e-1; // antibiotic needed for the death of a plasmid bearing cell 
+  const double d1 = 0.02; // death of plasmid bearing cell by antibiotic
+  const double d0 = 0.2; // death of plasmid free cell by antibiotic
 
 
   // in lumen
-  const double cL = pow(10, -9); // conjugation factor in lumen
+  const double cL = 1e-5; // conjugation factor in lumen
   const double DL = 0.25; // turnover rate in lumen
-  const double SLin = 10; // input resource concentration of the lumen
+  const double SLin = 16; // input resource concentration of the lumen
   const double KLW0 = 1e-9; // attaching rate of plasmid free cells to wall
   double KLW1; // attaching rate of plasmid bearing cells to wall
   const double d0L = DL; // death rate of plasmid free cells in lumen
   const double d1L = DL; // death rate of plasmid bearing cells in lumen
-  const double AinL = 30.0; // input antibiotic concentraton in lumen
+  const double AinL = 15; // input antibiotic concentraton in lumen
 
   // at wall
-  const double cW = pow(10, -8.8); // conjugation factor at wall
+  const double cW = 1e-5; // conjugation factor at wall
   const double DW = 0.25; // turnover at wall
-  const double SWin = 10; // input resource concentration at the wall
+  const double SWin = 16; // input resource concentration at the wall
   const double KWL0 = 1e-9; // dettaching rate of plasmid free cells of wall
   const double KWL1 = 1e-9; // dettaching rate of plasmid bearing cells of wall
   const double d0W = DW; // death rate of plasmide free at wall
@@ -242,16 +242,16 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
     {
       ++nOK;
     }
-    if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6 && fabs(dxdt[6]) < 1.0e-6)
+    /*if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6 && fabs(dxdt[5]) < 1.0e-6 && fabs(dxdt[6]) < 1.0e-6)
     {
        break; // if change very little, stop 
-    }
+    }*/
   }
 
   std::cout << "At wall:  \n" << "Antibiotic: " << x[3] << "\nResource: " << x[0] << "\nPlasmid Free: " << x[1] << "\nPlasmid bearing: " << x[2] << "\n" << std::endl;
   std::cout << "At Lumen:  \n"<< "Antibiotic: " << x[7] << "\nResource: " << x[4] << "\nPlasmid Free: " << x[5] << "\nPlasmid bearing: " << x[6] << "\n" << std::endl;
   
-  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
+  /*if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
   {                                                       // times larger than intial value, set it to 0 (cause it will go extinct) 
     x[2] = 0;
   }
@@ -266,7 +266,7 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   if (fabs(dxdt[5]) < 1.0e-6 && x[4] < initialN0 * 1000)
   {
     x[4] = 0;
-  }
+  }*/
 
   std::ofstream ofs(output_filename.c_str(), std::ios::app);
   if(!ofs.is_open())
@@ -310,7 +310,7 @@ int main()
   try 
   {
     // provide file name
-    std::string file_name = "Main2AC4.csv";
+    std::string file_name = "fuckoffplz8.csv";
     std::ofstream ofs(file_name.c_str());
 
     // give first row with variable names
@@ -318,11 +318,11 @@ int main()
     ofs.close();
 
     // do analysis for different values of the attachement rates, and increased conjugation  
-    for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -3); local_KLW0 *= 3) 
+    for (double local_KLW1 = 1e-8; local_KLW1 < 1e-1; local_KLW1*=2) 
     {
-      KLW1 = local_KLW0; 
+      KLW1 = local_KLW1; 
       std::vector<double> pars = {KLW1};
-      std::cout << "migration of L to W of plasmid bearing at rate: " << KLW1 << "\n";
+      std::cout << KLW1 << "\n";
       do_analysis(file_name, pars);
       /*std::cout << KLW1 << ',' << KLW0 << "\n";*/
     }
