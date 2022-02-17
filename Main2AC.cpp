@@ -34,20 +34,20 @@
 
 
   // in lumen
-  const double cL = 1e-5; // conjugation factor in lumen
+  const double cL = 1e-6; // conjugation factor in lumen
   const double DL = 0.25; // turnover rate in lumen
   const double SLin = 16; // input resource concentration of the lumen
   const double KLW0 = 1e-9; // attaching rate of plasmid free cells to wall
-  double KLW1; // attaching rate of plasmid bearing cells to wall
+  const double KLW1 = 1e-9; // attaching rate of plasmid bearing cells to wall
   const double d0L = DL; // death rate of plasmid free cells in lumen
   const double d1L = DL; // death rate of plasmid bearing cells in lumen
   const double AinL = 15; // input antibiotic concentraton in lumen
 
   // at wall
-  const double cW = 1e-5; // conjugation factor at wall
+  const double cW = 1e-6; // conjugation factor at wall
   const double DW = 0.25; // turnover at wall
   const double SWin = 16; // input resource concentration at the wall
-  const double KWL0 = 1e-9; // dettaching rate of plasmid free cells of wall
+  double KWL0; // dettaching rate of plasmid free cells of wall
   const double KWL1 = 1e-9; // dettaching rate of plasmid bearing cells of wall
   const double d0W = DW; // death rate of plasmide free at wall
   const double d1W = DW; // deat rate of plasmid bearing at wall
@@ -109,7 +109,7 @@ void exchange_cells(const std::vector<double> &x, std::vector<double> &dxdt)
   // by first measuring how many cells will transfer
   // and dividing this by their destination volume
   dxdt[1] += KLW0 * N0L  - KWL0 * N0W; 
-  dxdt[2] += KLW1 * N1L - KWL0 * N1W; 
+  dxdt[2] += KLW1 * N1L - KWL1 * N1W; 
   dxdt[5] += KWL0 * N0W - KLW0 * N0L; 
   dxdt[6] += KWL1 * N1W - KLW1 * N1L;
 
@@ -134,7 +134,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const int nvar = 8; // number of variables
     const double dt0 = 0.0005; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 100000.0; // end time
+    const double tEnd = 1000000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
@@ -251,7 +251,7 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   std::cout << "At wall:  \n" << "Antibiotic: " << x[3] << "\nResource: " << x[0] << "\nPlasmid Free: " << x[1] << "\nPlasmid bearing: " << x[2] << "\n" << std::endl;
   std::cout << "At Lumen:  \n"<< "Antibiotic: " << x[7] << "\nResource: " << x[4] << "\nPlasmid Free: " << x[5] << "\nPlasmid bearing: " << x[6] << "\n" << std::endl;
   
-  /*if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
+  if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
   {                                                       // times larger than intial value, set it to 0 (cause it will go extinct) 
     x[2] = 0;
   }
@@ -266,7 +266,7 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
   if (fabs(dxdt[5]) < 1.0e-6 && x[4] < initialN0 * 1000)
   {
     x[4] = 0;
-  }*/
+  }
 
   std::ofstream ofs(output_filename.c_str(), std::ios::app);
   if(!ofs.is_open())
@@ -310,7 +310,7 @@ int main()
   try 
   {
     // provide file name
-    std::string file_name = "fuckoffplz8.csv";
+    std::string file_name = "fuckoffplzpartytest2.csv";
     std::ofstream ofs(file_name.c_str());
 
     // give first row with variable names
@@ -320,9 +320,9 @@ int main()
     // do analysis for different values of the attachement rates, and increased conjugation  
     for (double local_KLW1 = 1e-8; local_KLW1 < 1e-1; local_KLW1*=2) 
     {
-      KLW1 = local_KLW1; 
-      std::vector<double> pars = {KLW1};
-      std::cout << KLW1 << "\n";
+      KWL0 = local_KLW1; 
+      std::vector<double> pars = {KWL0};
+      std::cout << KWL0 << "\n";
       do_analysis(file_name, pars);
       /*std::cout << KLW1 << ',' << KLW0 << "\n";*/
     }
