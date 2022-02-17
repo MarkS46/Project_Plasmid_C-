@@ -34,7 +34,7 @@
 
 
   // in lumen
-  const double cL = 1e-6; // conjugation factor in lumen
+  const double cL = 0; // conjugation factor in lumen
   const double DL = 0.25; // turnover rate in lumen
   const double SLin = 16; // input resource concentration of the lumen
   const double KLW0 = 1e-9; // attaching rate of plasmid free cells to wall
@@ -44,7 +44,7 @@
   const double AinL = 15; // input antibiotic concentraton in lumen
 
   // at wall
-  const double cW = 1e-6; // conjugation factor at wall
+  const double cW = 0; // conjugation factor at wall
   const double DW = 0.25; // turnover at wall
   const double SWin = 16; // input resource concentration at the wall
   double KWL0; // dettaching rate of plasmid free cells of wall
@@ -310,7 +310,7 @@ int main()
   try 
   {
     // provide file name
-    std::string file_name = "fuckoffplzpartytest2.csv";
+    std::string file_name = "test.csv";
     std::ofstream ofs(file_name.c_str());
 
     // give first row with variable names
