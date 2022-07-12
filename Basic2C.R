@@ -2,17 +2,12 @@ library (ggplot2)
 library(readr)
 library(ggpubr)
 
-data <- onlyabenmigincencon
-data1 <- filter(data, location != "Wall")
-data2 <- filter(data, location != "Lumen")
+data <- Basic2C
 
-ggplot(data=data1, aes(x=time)) +
-  geom_line(aes(y = size, color = population), size = 1) +
-  coord_cartesian(xlim = c(0, 500)) + 
+ggplot(data=data, aes(x=t)) +
+  geom_line(aes(y = popsize, color = location, linetype = population), size = 1) +
   scale_y_continuous(trans = "log10") +
-
-  
-  labs(title = "The effect of plasmid on population \nconcentrations for 2 different compartments\n                      LUMEN",
+  labs(title = "The effect of plasmid on population \nconcentrations for 2 different compartments",
        y = "concentration of bacteria in ml",
        x = "Time")+ 
   
@@ -22,17 +17,4 @@ ggplot(data=data1, aes(x=time)) +
     axis.text = element_text(size= 13))
 
 
-ggplot(data=data2, aes(x=time)) +
-  geom_line(aes(y = size, color = population), size = 1) +
-  scale_y_continuous(trans = "log10") +
-  coord_cartesian(xlim = c(0, 1000)) + 
-  
-  
-  labs(title = "The effect of plasmid on population \nconcentrations for 2 different compartments\n                      WALL",
-       y = "concentration of bacteria in ml",
-       x = "Time")+ 
-  
-  theme(
-    plot.title = element_text(size = 18),
-    legend.text = element_text(size = 13),
-    axis.text = element_text(size= 13))
+

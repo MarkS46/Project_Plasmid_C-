@@ -31,7 +31,7 @@
   const double WL = 4.5; // Rate at which the nutrient solution enters (and leaves) the chemostat (lumen)
   const double cL = pow(10, -9); // conjugation factor in lumen
   const double DL = WL/VL; // turnover rate in lumen
-  const double SLin = 25; // input resource concentration of the lumen
+  const double SLin = 30; // input resource concentration of the lumen
   double KLW0 = 1e-9; // attaching rate of plasmid free cells to wall
   double KLW1 = 1e-9; // attaching rate of plasmid bearing cells to wall
   const double d0L = DL; // death rate of plasmid free cells in lumen
@@ -40,9 +40,9 @@
   // at wall
   const double VW = 2.0; // Volume of wall chemostat 
   const double WW = 0.50; // Rate at which the nutrient solution enters (and leaves) the chemostat (wall)
-  const double cW = pow(10, -9); // conjugation factor at wall
+  const double cW = pow(10, -8.5); // conjugation factor at wall
   const double DW = WW/VW; // turnover at wall
-  const double SWin = 7; // input resource concentration at the wall
+  const double SWin = 16; // input resource concentration at the wall
   const double KWL0 = 1e-9; // dettaching rate of plasmid free cells of wall
   const double KWL1 = 1e-9; // dettaching rate of plasmid bearing cells of wall
   const double d0W = DW; // death rate of plasmide free at wall
@@ -234,9 +234,6 @@ void do_analysis(std::string output_filename, const std::vector<double>& pars)
        break; // if change very little, stop 
     }
   }
-
-  std::cout << "At wall:  \n" << "Resource: " << x[0] << "\nPlasmid Free: " << x[1] << "\nPlasmid bearing: " << x[2] << "\n" << std::endl;
-  std::cout << "At Lumen:  \n" << "Resource: " << x[3] << "\nPlasmid Free: " << x[4] << "\nPlasmid bearing: " << x[5] << "\n" << std::endl;
   
   if (fabs(dxdt[2]) < 1.0e-6 && x[2] < initialN1 * 1000)  // if the almost equillibrium value is reached and the value is not 1000
   {                                                       // times larger than intial value, set it to 0 (cause it will go extinct) 
@@ -305,13 +302,13 @@ int main()
     ofs.close();
 
     // do analysis for different values of the attachement rates, and increased conjugation  
-    for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -2); local_KLW0 *= 3) 
+    for (double local_KLW0 = 1e-10; local_KLW0 < pow(10, -2); local_KLW0 *= 2) 
     {
       KLW1 = local_KLW0; 
       KLW0 = local_KLW0 * 10;
       std::vector<double> pars = {KLW1, KLW0};
       do_analysis(file_name, pars);
-      /*std::cout << KLW1 << ',' << KLW0 << "\n";*/
+      std::cout << KLW1 << ',' << KLW0 << "\n";
     }
   }
   catch(std::exception &error)
