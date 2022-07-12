@@ -22,7 +22,7 @@
     const double l = 1e-3; // loss of plasmid by divsion
     const double c = 1e-9; // conjugation rate
     const double D = 0.25; // turnover rate
-    const double r0 = 0.738; // max growth rate of plasmid free
+    const double r0 = .738; // max growth rate of plasmid free
     const double r1 = 0.6642; // max growth rate of plasmid bearing
     double Sin; //inflow concentration of resource   
 

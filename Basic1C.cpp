@@ -16,17 +16,18 @@
 
 //*** model parameters *********
 
-    const double K0 = 4.0; // half saturation constant of plasmid bearing 
+    const double K0 = 4.0; // half saturation constant of plasmid bearing ??
     const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 6.25 * 1e-7; // resource needed to divide once for plasmid bearing cells
-    const double e0 = 6.25 * 1e-7; // resource needed to divide once for plasmid free cells
-    const double l = 1e-3; // loss of plasmid by divsion
-    const double c = 1e-9; // conjugation rate
+    const double e1 = 1; // resource needed to divide once for plasmid bearing cells
+    const double e0 = 1; // resource needed to divide once for plasmid free cells
+    const double l = 0; // loss of plasmid by divsion
+    const double c = 1e-7; // conjugation rate
     const double D = 0.25; // rate of turnover
-    const double r0 = 0.738; // growth rate of plasmid free
-    const double r1 = 0.6642; // growth rate of plasmid bearing
-    const double Sin = 16; // input resource concentration of food    
+    const double r0 = 1.0; // growth rate of plasmid free
+    const double r1 = 0.80; // growth rate of plasmid bearing
+    const double Sin = 250; // input resource concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
+    const double death = 0.01;
 
 //*** ODE description *********
 
@@ -40,8 +41,8 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     double psi1 = ((r1 * R) / (K1 + R)); // growth rate of plasmid bearing bacteria
     
     dxdt[0] = D * (Sin - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
-    dxdt[1] = psi0 * N0  - D * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
-    dxdt[2] = psi1 * N1 - D * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
+    dxdt[1] = psi0 * N0  - death * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
+    dxdt[2] = psi1 * N1 - death * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
 }
 
 //*** parameters of the integration algorithm *********
@@ -53,7 +54,7 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
     const int nvar = 3; // number of variables
     const double dt0 = 0.001; // initial time step size
     const double dtsav = 0.05; // save data after time steps
-    const double tEnd = 100000.0; // end time
+    const double tEnd = 10000.0; // end time
     const double tolerance = 1.0e-6; // acceptable local error during numerical integration
 
 //*** The Bogacki-Shampine stepper *********
@@ -150,11 +151,11 @@ int main()
         ofs << "t" << ',' << "popsize" << ',' << "population" << ',' << "resource input" << "\n";
 
         // give initial values
-        double initialN0 = 1.0;
-        double initialN1 = 1e-5;
+        double initialN0 = 250.0;
+        double initialN1 = 250.0;
 
         std::vector<double> x(nvar);
-        x[0] = Sin;
+        x[0] = 1250000;
         x[1] = initialN0;
         x[2] = initialN1;
         std::vector<double> dxdt(nvar);
@@ -171,10 +172,6 @@ int main()
             {
                 ++nOK; // number of OK steps to be recorded
             }
-            if (fabs(dxdt[1]) < 1.0e-6 && fabs(dxdt[2]) < 1.0e-6) // if change very little, stop (equilibrium most likely reached)
-            {
-                break; 
-            } 
             if(dt < dtMin) // keep track of the smallest step size
             {
                 dtMin = dt;
@@ -184,10 +181,34 @@ int main()
                 dtMax = dt;
             }
 
-            if(t > tsav) // save the data every 0.05 time steps
+            double input1;
+            double input2;
+
+            if (x[1] < 1e-10)
             {
-                ofs << t << ',' << x[1] << ',' << "N0" << ',' << Sin << '\n' 
-                    << t << ',' << x[2] << ',' << "N1" << ',' << Sin << '\n'; 
+                input1 = 1e-10;
+            } 
+            else
+            {
+               input1 = x[1];
+            }
+
+            if (x[2] < 1e-10)
+            {
+                input2 = 1e-10;
+            } 
+            else
+            {
+                input2 = x[2];
+            }
+
+
+            if(t > tsav) 
+            {
+                ofs << t << ',' << input1 << ',' << "N0" << ',' << Sin << '\n'
+                    << t << ',' << x[0] << ',' << "res" << ',' << Sin << '\n'
+                    << t << ',' << input2 << ',' << "N1" << ',' << Sin << '\n';
+
                 tsav += dtsav;
             }
         }
@@ -201,7 +222,8 @@ int main()
         << "max step size : " << dtMax << "\n\n";
 
         // return population concentrations at end of simulation
-        std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] <<"\n";
+        std::cout << "plasmid free = " << x[1] << " plasmid bearing = " << x[2] << "resource = " << x[0] << "\n";
+        
 
         // return alpha
         std::cout << "alpha = "  << alfa << "\n";
