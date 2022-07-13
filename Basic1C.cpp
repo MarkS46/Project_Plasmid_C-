@@ -18,14 +18,14 @@
 
     const double K0 = 4.0; // half saturation constant of plasmid bearing ??
     const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 1; // resource needed to divide once for plasmid bearing cells
-    const double e0 = 1; // resource needed to divide once for plasmid free cells
+    const double e1 = 0.1; // resource needed to divide once for plasmid bearing cells
+    const double e0 = 0.1; // resource needed to divide once for plasmid free cells
     const double l = 0; // loss of plasmid by divsion
-    const double c = 1e-7; // conjugation rate
+    const double c = pow(10, -8.2); // conjugation rate
     const double D = 0.25; // rate of turnover
-    const double r0 = 1.0; // growth rate of plasmid free
-    const double r1 = 0.80; // growth rate of plasmid bearing
-    const double Sin = 250; // input resource concentration of food    
+    const double r0 = 0.1; // growth rate of plasmid free
+    const double r1 = 0.09; // growth rate of plasmid bearing
+    const double Sin = 2500; // input resource concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
     const double death = 0.01;
 
