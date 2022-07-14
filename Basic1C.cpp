@@ -16,16 +16,16 @@
 
 //*** model parameters *********
 
-    const double K0 = 4.0; // half saturation constant of plasmid bearing ??
-    const double K1 = 4.0; // half saturation constant of plasmid bearing
-    const double e1 = 0.1; // resource needed to divide once for plasmid bearing cells
-    const double e0 = 0.1; // resource needed to divide once for plasmid free cells
+    const double K0 = 200000.0; // half saturation constant of plasmid bearing ??
+    const double K1 = 200000.0; // half saturation constant of plasmid bearing
+    const double e1 = 1; // resource needed to divide once for plasmid bearing cells
+    const double e0 = 1; // resource needed to divide once for plasmid free cells
     const double l = 0; // loss of plasmid by divsion
-    const double c = pow(10, -8.2); // conjugation rate
-    const double D = 0.25; // rate of turnover
-    const double r0 = 0.1; // growth rate of plasmid free
-    const double r1 = 0.09; // growth rate of plasmid bearing
-    const double Sin = 2500; // input resource concentration of food    
+    const double c = 1e-3; // conjugation rate
+    const double D = 0.005; // rate of turnover
+    const double r0 = 1.0; // growth rate of plasmid free
+    const double r1 = 0.90; // growth rate of plasmid bearing
+    const double Sin = 40000; // input resource concentration of food    
     const double alfa = 1 - (r1/r0); // selective advantage of plasmid free cells
     const double death = 0.01;
 
@@ -39,10 +39,22 @@ void rhs(const double &t, const std::vector<double> &x, std::vector<double> &dxd
 
     double psi0 = ((r0 * R) / (K0 + R)); // growth rate of plasmid free bacteria
     double psi1 = ((r1 * R) / (K1 + R)); // growth rate of plasmid bearing bacteria
-    
+
+    double conjugating;
+    if (N0 > N1)
+    {
+        conjugating = N1;
+    }
+    else
+    {
+        conjugating = N0;
+    }
+
+    double surround = N1 / (N0 + N1);
+
     dxdt[0] = D * (Sin - R) - e0 * psi0 * N0 - e1 * psi1 * N1; // differential equation of the resource
-    dxdt[1] = psi0 * N0  - death * N0 + l * N1 - c * N0 * N1; // differential equation of the plasmid free cells
-    dxdt[2] = psi1 * N1 - death * N1 - l * N1 + c * N0 * N1; // differential equation of the plasmid bearing cells
+    dxdt[1] = psi0 * N0  - death * N0 + l * N1 - c * conjugating; // differential equation of the plasmid free cells
+    dxdt[2] = psi1 * N1 - death * N1 - l * N1 + c  * conjugating; // differential equation of the plasmid bearing cells
 }
 
 //*** parameters of the integration algorithm *********
@@ -155,7 +167,7 @@ int main()
         double initialN1 = 250.0;
 
         std::vector<double> x(nvar);
-        x[0] = 1250000;
+        x[0] = 125000;
         x[1] = initialN0;
         x[2] = initialN1;
         std::vector<double> dxdt(nvar);
@@ -206,8 +218,8 @@ int main()
             if(t > tsav) 
             {
                 ofs << t << ',' << input1 << ',' << "N0" << ',' << Sin << '\n'
-                    << t << ',' << x[0] << ',' << "res" << ',' << Sin << '\n'
-                    << t << ',' << input2 << ',' << "N1" << ',' << Sin << '\n';
+                    << t << ',' << input2 << ',' << "N1" << ',' << Sin << '\n'
+                    << t << ',' << x[0] << ',' << "res" << ',' << Sin << '\n';
 
                 tsav += dtsav;
             }
